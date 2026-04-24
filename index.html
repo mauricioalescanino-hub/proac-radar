@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -433,6 +434,52 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
 .btn-moskit:disabled { opacity: .4; cursor: not-allowed; }
 .btn-moskit.syncing { color: var(--blue); border-color: var(--blue-bdr); background: var(--blue-dim); }
 .moskit-sync-result { font-size: 11px; color: var(--text3); }
+
+/* ── MOSKIT SELLER PICKER ── */
+.seller-overlay {
+  position: fixed; inset: 0; background: rgba(10,20,40,0.5); z-index: 800;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .18s;
+}
+.seller-overlay.open { opacity: 1; pointer-events: all; }
+.seller-modal {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  width: 400px; max-width: 95vw; box-shadow: var(--shadow-md);
+  transform: translateY(10px) scale(.98); transition: transform .2s;
+  overflow: hidden;
+}
+.seller-overlay.open .seller-modal { transform: translateY(0) scale(1); }
+.seller-header {
+  padding: 18px 22px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.seller-header h3 { font-family: var(--cond); font-size: 14px; font-weight: 700; color: var(--text); }
+.seller-body { padding: 16px 22px 20px; display: flex; flex-direction: column; gap: 14px; }
+.seller-list {
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 240px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+}
+.seller-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 13px; border-radius: var(--radius-sm); border: 1px solid transparent;
+  cursor: pointer; transition: all .12s;
+}
+.seller-item:hover { background: var(--bg3); border-color: var(--border); }
+.seller-item.selected { background: var(--blue-dim); border-color: var(--blue-bdr); }
+.seller-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--cond); font-size: 13px; font-weight: 700; color: #fff;
+}
+.seller-info { flex: 1; min-width: 0; }
+.seller-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.seller-email { font-size: 11px; color: var(--text4); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seller-check { font-size: 16px; color: var(--blue); flex-shrink:0; opacity: 0; transition: opacity .12s; }
+.seller-item.selected .seller-check { opacity: 1; }
+.seller-loading { text-align: center; padding: 24px; color: var(--text4); font-size: 12px; font-family: var(--cond); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.seller-err { text-align: center; padding: 20px; color: var(--red); font-size: 12px; }
+.seller-footer { padding: 14px 22px 18px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
 </style>
 </head>
 <body>
@@ -695,6 +742,32 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
   </div>
 </div>
 
+<!-- MODAL SELEÇÃO DE VENDEDOR MOSKIT -->
+<div class="seller-overlay" id="sellerOverlay" onclick="fecharSellerModal(event)">
+  <div class="seller-modal">
+    <div class="seller-header">
+      <h3>👤 Atribuir responsável</h3>
+      <button class="modal-close" onclick="fecharSellerModalDireto()">×</button>
+    </div>
+    <div class="seller-body">
+      <div style="font-size:12px;color:var(--text3);line-height:1.6">
+        Escolha o vendedor que receberá este lead no Moskit:
+        <br><strong style="color:var(--text)" id="sellerProjName">—</strong>
+      </div>
+      <div class="seller-list" id="sellerList">
+        <div class="seller-loading">
+          <div class="pitch-dots" style="justify-content:center;display:flex;margin-bottom:8px"><span></span><span></span><span></span></div>
+          Buscando vendedores...
+        </div>
+      </div>
+    </div>
+    <div class="seller-footer">
+      <button class="btn-cancel" onclick="fecharSellerModalDireto()">Cancelar</button>
+      <button class="btn-save" id="btnConfirmarVendedor" onclick="confirmarEnvioMoskit()" disabled>Enviar ao Moskit</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIG MOSKIT -->
 <div class="cfg-overlay" id="cfgOverlay" onclick="fecharCfg(event)">
   <div class="cfg-modal">
@@ -791,12 +864,101 @@ const POR_PAGINA=30;
 const CRM_KEY='etc_crm_v1';
 const IDS_KEY='etc_proac_ids_v2';
 
+// ── SUPABASE ──
+const SUPA_URL = 'https://dckvqweuinsgadhkkjqx.supabase.co';
+const SUPA_KEY = 'sb_publishable_iv2Os_NEF43MdNbLRCqltA_0QeSKILb';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
 const CRM_STATUS_LABELS={nao:'Não contatado',contato:'Em contato',proposta:'Proposta enviada',negociando:'Negociando',fechado:'Fechado ✓',descartado:'Descartado'};
 const CRM_STATUS_CORES={nao:'var(--text3)',contato:'var(--blue)',proposta:'var(--purple)',negociando:'var(--orange)',fechado:'var(--green)',descartado:'var(--text4)'};
 
 let todosLeads=[],idsVistos=new Set(JSON.parse(localStorage.getItem(IDS_KEY)||'[]'));
-let crmData=JSON.parse(localStorage.getItem(CRM_KEY)||'{}');
+let crmData={};
 let sortCol='aprovacao',sortAsc=false,paginaAtual=0,filtroProgAtivo='';
+
+// ── SUPABASE CRM FUNÇÕES ──
+async function carregarCRMSupabase() {
+  try {
+    const { data, error } = await supa.from('proac_crm').select('*');
+    if (error) throw error;
+    crmData = {};
+    for (const row of (data || [])) {
+      crmData[row.id] = {
+        status: row.status_crm || 'nao',
+        responsavel: row.responsavel || '',
+        dataContato: row.data_contato || '',
+        proximoPasso: row.proximo_passo || '',
+        obs: row.obs || '',
+        moskitId: row.moskit_id || '',
+        updatedAt: row.updated_at || ''
+      };
+    }
+    atualizarCRMStats();
+    renderTabela();
+  } catch(e) {
+    console.warn('Supabase CRM load error:', e.message);
+    // fallback localStorage
+    crmData = JSON.parse(localStorage.getItem(CRM_KEY)||'{}');
+  }
+}
+
+async function saveCRM(id, dados) {
+  // Sempre salva no localStorage como fallback
+  if (id && dados) crmData[id] = dados;
+  localStorage.setItem(CRM_KEY, JSON.stringify(crmData));
+
+  // Salva no Supabase
+  if (!id) return;
+  const d = dados || crmData[id];
+  if (!d) return;
+  try {
+    const { error } = await supa.from('proac_crm').upsert({
+      id: id,
+      status_crm: d.status || 'nao',
+      responsavel: d.responsavel || '',
+      data_contato: d.dataContato || '',
+      proximo_passo: d.proximoPasso || '',
+      obs: d.obs || '',
+      moskit_id: d.moskitId || '',
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+    if (error) console.warn('Supabase CRM save error:', error.message);
+  } catch(e) {
+    console.warn('Supabase save failed:', e.message);
+  }
+}
+
+async function salvarLeadsSupabase(leads) {
+  if (!leads || leads.length === 0) return;
+  try {
+    const rows = leads.map(l => ({
+      id: l.id,
+      novo: l.novo,
+      tipo: l.tipo,
+      aprovacao: l.aprovacao || null,
+      programa: l.programa,
+      projeto: l.projeto,
+      inscricao: l.inscricao,
+      proponente: l.proponente,
+      tipo_pessoa: l.tipoPessoa,
+      segmento: l.segmento,
+      ano_edital: l.anoEdital,
+      status: l.status,
+      valor: l.valor || 0,
+      municipio: l.municipio,
+      acess_info: l.acessInfo || '',
+      updated_at: new Date().toISOString()
+    }));
+    // Upsert em lotes de 200
+    for (let i = 0; i < rows.length; i += 200) {
+      const { error } = await supa.from('proac_leads').upsert(rows.slice(i, i+200), { onConflict: 'id' });
+      if (error) console.warn('Supabase leads upsert error:', error.message);
+    }
+    log('  Leads salvos no Supabase ✓', 'ok');
+  } catch(e) {
+    console.warn('Supabase leads save failed:', e.message);
+  }
+}
 let chartProg=null,chartMes=null,modalId=null;
 
 function stripHtml(s){return String(s||'').replace(/<[^>]+>/g,' ').toLowerCase();}
@@ -846,6 +1008,7 @@ async function iniciarColeta(){
     document.getElementById('ultimaAtualizacao').textContent='Atualizado '+agora;
     localStorage.setItem('etc_ultima',agora);
     log('Concluído! '+todosLeads.length+' leads.','ok');
+    await salvarLeadsSupabase(todosLeads);
     pill.className='live-pill ok';pill.textContent='Dados atuais';
     setProgress(100);
     atualizarMetrics();popularFiltros();renderProgTags();renderCharts();atualizarCRMStats();resetPagina();renderTabela();
@@ -1005,10 +1168,9 @@ function renderTabela(){
 function atualizarStatus(id,val,sel){
   if(!crmData[id])crmData[id]={};
   crmData[id].status=val;
-  saveCRM();
+  saveCRM(id, crmData[id]);
   sel.className='crm-select s-'+val;
   atualizarCRMStats();
-  // Atualizar classe da linha
   const tr=sel.closest('tr');
   tr.className='';
   const nc=getCRMRowClass(id);
@@ -1034,7 +1196,7 @@ function fecharModalDireto(){document.getElementById('modalOverlay').classList.r
 
 function salvarCRM(){
   if(!modalId)return;
-  crmData[modalId]={
+  const dados={
     status:document.getElementById('mCrmStatus').value,
     responsavel:document.getElementById('mCrmResponsavel').value.trim(),
     dataContato:document.getElementById('mCrmDataContato').value,
@@ -1042,7 +1204,8 @@ function salvarCRM(){
     obs:document.getElementById('mCrmObs').value.trim(),
     updatedAt:new Date().toISOString()
   };
-  saveCRM();
+  crmData[modalId]=dados;
+  saveCRM(modalId, dados);
   fecharModalDireto();
   atualizarCRMStats();
   renderTabela();
@@ -1220,11 +1383,89 @@ async function copiarPitch() {
 }
 
 // ── MOSKIT CRM INTEGRATION ──
-const MOSKIT_PROXY = 'https://api.moskit.com.br/v2'; // direto (CORS pode bloquear — ver nota cfg)
+const MOSKIT_PROXY = 'https://api.moskit.com.br/v2';
+let moskitVendedores = null; // cache
+let vendedorSelecionado = null;
 
 async function enviarParaMoskit() {
   const key = localStorage.getItem('etc_moskit_key');
   if (!key || !projAtual) return;
+
+  // Abre o picker de vendedor
+  vendedorSelecionado = null;
+  document.getElementById('btnConfirmarVendedor').disabled = true;
+  document.getElementById('sellerProjName').textContent = projAtual.projeto;
+  document.getElementById('sellerOverlay').classList.add('open');
+
+  // Busca vendedores (usa cache se já tiver)
+  if (moskitVendedores) {
+    renderVendedores(moskitVendedores);
+  } else {
+    document.getElementById('sellerList').innerHTML = `
+      <div class="seller-loading">
+        <div class="pitch-dots" style="justify-content:center;display:flex;margin-bottom:8px"><span></span><span></span><span></span></div>
+        Buscando vendedores...
+      </div>`;
+    try {
+      const r = await fetch(`${MOSKIT_PROXY}/users`, { headers: { 'apikey': key, 'Content-Type': 'application/json' } });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      const lista = Array.isArray(data) ? data : (data.users || data.data || []);
+      moskitVendedores = lista;
+      renderVendedores(lista);
+    } catch(e) {
+      document.getElementById('sellerList').innerHTML = `
+        <div class="seller-err">
+          Não foi possível carregar os vendedores.<br>
+          <span style="font-size:10px;color:var(--text4)">${e.message} — verifique a API Key e o proxy CORS</span>
+        </div>`;
+    }
+  }
+}
+
+const AVATAR_COLORS = ['#1a6ef5','#0099b5','#7c3aed','#059669','#ea7c1e','#db2777','#dc2626'];
+
+function renderVendedores(lista) {
+  if (!lista || lista.length === 0) {
+    document.getElementById('sellerList').innerHTML = `<div class="seller-err">Nenhum vendedor encontrado na conta.</div>`;
+    return;
+  }
+  document.getElementById('sellerList').innerHTML = lista.map((u, i) => {
+    const nome = u.name || u.fullName || u.username || `Usuário ${u.id}`;
+    const email = u.email || '';
+    const iniciais = nome.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+    const cor = AVATAR_COLORS[i % AVATAR_COLORS.length];
+    return `<div class="seller-item" id="seller-${u.id}" onclick="selecionarVendedor(${u.id}, '${nome.replace(/'/g,"\\'")}')">
+      <div class="seller-avatar" style="background:${cor}">${iniciais}</div>
+      <div class="seller-info">
+        <div class="seller-name">${nome}</div>
+        ${email ? `<div class="seller-email">${email}</div>` : ''}
+      </div>
+      <div class="seller-check">✓</div>
+    </div>`;
+  }).join('');
+}
+
+function selecionarVendedor(id, nome) {
+  vendedorSelecionado = { id, nome };
+  document.querySelectorAll('.seller-item').forEach(el => el.classList.remove('selected'));
+  document.getElementById(`seller-${id}`)?.classList.add('selected');
+  document.getElementById('btnConfirmarVendedor').disabled = false;
+  document.getElementById('btnConfirmarVendedor').textContent = `Enviar para ${nome.split(' ')[0]}`;
+}
+
+function fecharSellerModal(e) { if (e.target === document.getElementById('sellerOverlay')) fecharSellerModalDireto(); }
+function fecharSellerModalDireto() {
+  document.getElementById('sellerOverlay').classList.remove('open');
+  vendedorSelecionado = null;
+  document.getElementById('btnConfirmarVendedor').textContent = 'Enviar ao Moskit';
+}
+
+async function confirmarEnvioMoskit() {
+  if (!vendedorSelecionado || !projAtual) return;
+  fecharSellerModalDireto();
+
+  const key = localStorage.getItem('etc_moskit_key');
   const btn = document.getElementById('btnEnviarMoskit');
   const res = document.getElementById('moskitSyncResult');
   btn.disabled = true;
@@ -1234,12 +1475,12 @@ async function enviarParaMoskit() {
 
   const lead = projAtual;
   const pipeline = localStorage.getItem('etc_moskit_pipeline') || '';
-  const crm = getCRM(lead.id);
   const pitch = document.getElementById('pitchContent').querySelector('.pitch-text')?.textContent || '';
 
   const payload = {
     name: lead.projeto,
     value: lead.valor || 0,
+    userId: vendedorSelecionado.id,
     description: `ProAC Radar — ${PROG_LABELS[lead.programa] || lead.programa}\nProponente: ${lead.proponente}\nMunicípio: ${lead.municipio}\nInscrição: ${lead.inscricao}\nValor: ${formatValor(lead.valor)}\nSegmento: ${lead.segmento}${pitch ? '\n\n--- PITCH ETC FILMES ---\n' + pitch.substring(0, 500) : ''}`,
     ...(pipeline ? {salesFunnelId: Number(pipeline)} : {})
   };
@@ -1252,17 +1493,18 @@ async function enviarParaMoskit() {
     });
     const d = await r.json();
     if (r.ok && (d.id || d.deal)) {
-      res.innerHTML = `<span style="color:var(--green)">✓ Negócio criado no Moskit!</span>`;
-      // Atualiza CRM local tb
+      res.innerHTML = `<span style="color:var(--green)">✓ Enviado para ${vendedorSelecionado.nome.split(' ')[0]}!</span>`;
       if (!crmData[lead.id]) crmData[lead.id] = {};
       crmData[lead.id].moskitId = d.id || d.deal?.id;
-      saveCRM();
+      crmData[lead.id].responsavel = vendedorSelecionado.nome;
+      saveCRM(lead.id, crmData[lead.id]);
     } else {
       res.innerHTML = `<span style="color:var(--red)">Erro: ${d.message || d.error || r.status}</span>`;
     }
   } catch(e) {
-    res.innerHTML = `<span style="color:var(--orange)">CORS bloqueado. Configure um proxy. <a href="#" onclick="abrirCfg()" style="color:var(--blue)">Ver config</a></span>`;
+    res.innerHTML = `<span style="color:var(--orange)">CORS bloqueado — configure um proxy. <a href="#" onclick="abrirCfg();return false;" style="color:var(--blue)">Ver config</a></span>`;
   }
+
   btn.disabled = false;
   btn.classList.remove('syncing');
   btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Enviar ao Moskit`;
@@ -1315,11 +1557,26 @@ function atualizarMoskitBtn() {
 }
 atualizarMoskitBtn();
 
-// Restaurar estado
+// ── BOOT ──
 const ul=localStorage.getItem('etc_ultima');
 if(ul){document.getElementById('ultimaAtualizacao').textContent='Atualizado '+ul;document.getElementById('livePill').className='live-pill';document.getElementById('livePill').textContent='Dados locais';}
 renderTabela();
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharModalDireto();fecharProjModalDireto();fecharCfgDireto();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharModalDireto();fecharProjModalDireto();fecharCfgDireto();fecharSellerModalDireto();}});
+
+// Carrega CRM do Supabase ao iniciar
+(async () => {
+  const pill = document.getElementById('livePill');
+  const prevText = pill.textContent;
+  pill.textContent = 'Sincronizando...';
+  pill.className = 'live-pill loading';
+  await carregarCRMSupabase();
+  pill.textContent = prevText || 'Sem dados';
+  pill.className = ul ? 'live-pill' : 'live-pill';
+  if (Object.keys(crmData).length > 0) {
+    log('CRM carregado do Supabase: ' + Object.keys(crmData).length + ' registros', 'ok');
+    setTimeout(clearLog, 2500);
+  }
+})();
 </script>
 </body>
 </html>
