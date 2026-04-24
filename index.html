@@ -976,8 +976,8 @@ function isAudiovisual(p){const s=p.submission||{},n=p.notice||{};const t=[(s.ca
 function getAcess(p){const ts=new Set();for(const q of(p.questionsAnswers||[])){const c=stripHtml((q.value||{}).data||'');for(const t of TERMOS_ACESS)if(c.includes(t))ts.add(t);}return ts.size>0?[...ts].join(', '):null;}
 function formatDate(s){if(!s)return'—';try{return new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return s.substring(0,10);}}
 function formatValor(v){if(!v)return'—';return'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
-function saveCRM(){localStorage.setItem(CRM_KEY,JSON.stringify(crmData));}
 function getCRM(id){return crmData[id]||{status:'nao',responsavel:'',dataContato:'',proximoPasso:'',obs:''};}
+
 
 function log(msg,tipo='prog'){const el=document.getElementById('logLines'),w=document.getElementById('logWrap');w.classList.add('visible');const d=document.createElement('div');d.className='log-line '+tipo;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
 function clearLog(){document.getElementById('logLines').innerHTML='';document.getElementById('logWrap').classList.remove('visible');}
