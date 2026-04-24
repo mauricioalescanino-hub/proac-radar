@@ -851,6 +851,9 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
 </div>
 
 <script>
+// ⬇️ Após fazer deploy do proxy no Vercel, substitua pela sua URL:
+const ANTHROPIC_PROXY = 'https://SEU-PROJETO.vercel.app/api/anthropic';
+
 const PROGRAMAS=["Proac ICMS","Proac Editais","Proac Direto","Proac LAB","Política Nacional Aldir Blanc","Pontos de Cultura"];
 const CORES_PROG={"Proac ICMS":"#1a6ef5","Proac Editais":"#0099b5","Proac Direto":"#059669","Proac LAB":"#ea7c1e","Política Nacional Aldir Blanc":"#7c3aed","Pontos de Cultura":"#db2777"};
 const PROG_LABELS={"Proac ICMS":"ICMS","Proac Editais":"Editais","Proac Direto":"Direto","Proac LAB":"LAB","Política Nacional Aldir Blanc":"PNAB","Pontos de Cultura":"Pontos Cult."};
@@ -1423,7 +1426,7 @@ REGRAS:
 7. NÃO use "Prezado(a)" ou saudação genérica — vá direto ao ponto`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch(ANTHROPIC_PROXY, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
