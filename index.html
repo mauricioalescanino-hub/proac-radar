@@ -1274,20 +1274,98 @@ function abrirProjModal(id) {
 
 async function buscarDetalhesProj(lead) {
   try {
-    const r = await fetch(`https://fomentocultsp.sp.gov.br/api/publicConsultation/${lead.id}`, {headers: HEADERS});
+    const r = await fetch(`${BASE}/${lead.id}`, {headers: HEADERS});
     if (!r.ok) return;
     const j = await r.json();
     const data = j.DATA || j;
-    const sub = data.submission || {};
-    // Tentar pegar descrição/objeto
-    const desc = sub.description || sub.object || sub.objective || data.description || '';
-    if (desc) {
-      document.getElementById('pmDesc').innerHTML = desc.replace(/<[^>]+>/g, ' ').trim() || desc;
-      document.getElementById('pmDescBloco').style.display = '';
-    }
-    // Enriquecer com dados extras se disponíveis
     projAtual._raw = data;
-  } catch(e) { /* silencioso */ }
+
+    const sub = data.submission || {};
+    const qa  = data.questionsAnswers || [];
+
+    function getQA(nome) {
+      const item = qa.find(q => (q.question?.name||'').toLowerCase().includes(nome.toLowerCase()));
+      if (!item) return '';
+      return (item.value?.data || '').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+    }
+
+    const resumo       = getQA('resumo');
+    const descricao    = getQA('descrição') || getQA('descricao');
+    const objetivos    = getQA('objetivo');
+    const contrapartida= getQA('contrapartida');
+    const outrasInfo   = getQA('outras informações') || getQA('outras informacoes');
+
+    const dtInicio = sub.expectedStart ? new Date(sub.expectedStart).toLocaleDateString('pt-BR') : '';
+    const dtFim    = sub.expectedEnd   ? new Date(sub.expectedEnd).toLocaleDateString('pt-BR')   : '';
+
+    // Locais de realização (campo TABLE)
+    const locaisQA = qa.find(q => (q.question?.name||'').toLowerCase().includes('local'));
+    let locaisTexto = '';
+    if (locaisQA?.value?.data && Array.isArray(locaisQA.value.data)) {
+      locaisTexto = locaisQA.value.data.map(row => {
+        const cols    = row.columnList || [];
+        const cidade  = cols.find(c=>c.columnId==='65d0c557-ba50-4711-b560-7bf6d414b600')?.value || '';
+        const nome    = cols.find(c=>c.columnId==='46db11ae-e710-47db-bd6d-41573af1bc4a')?.value || '';
+        const lotacao = cols.find(c=>c.columnId==='9ea9ea46-0ad8-4981-81b7-f4d077926ee8')?.value || '';
+        const apres   = cols.find(c=>c.columnId==='b5c2c3e4-db31-44e8-bc72-4d46a7d78459')?.value || '';
+        const end     = cols.find(c=>c.columnId==='333e6dff-1e69-41ae-b7c6-8eff6862113b')?.value || '';
+        return [nome, cidade, end, lotacao?`Lotação: ${lotacao}`:'', apres?`${apres} apresentações`:''].filter(Boolean).join(' · ');
+      }).join('\n');
+    }
+
+    projAtual._detalhes = { resumo, descricao, objetivos, contrapartida, outrasInfo, dtInicio, dtFim, locaisTexto };
+
+    // Atualizar período no info grid
+    if (dtInicio || dtFim) {
+      const anoCard = document.getElementById('pmAno');
+      if (anoCard) {
+        anoCard.closest('.proj-info-card').querySelector('.label').textContent = 'Período execução';
+        anoCard.textContent = dtInicio && dtFim ? `${dtInicio} → ${dtFim}` : (dtInicio || dtFim);
+      }
+    }
+
+    // Montar seções ricas no modal
+    const secoes = [
+      { titulo: 'Resumo',         conteudo: resumo },
+      { titulo: 'Descrição',      conteudo: descricao },
+      { titulo: 'Objetivos',      conteudo: objetivos },
+      { titulo: 'Contrapartida',  conteudo: contrapartida },
+      { titulo: 'Outras info.',   conteudo: outrasInfo },
+    ].filter(s => s.conteudo && s.conteudo.length > 10);
+
+    if (secoes.length > 0 || locaisTexto) {
+      const descBloco = document.getElementById('pmDescBloco');
+      descBloco.style.display = '';
+      let html = '';
+
+      if (locaisTexto) {
+        html += `<div style="margin-bottom:16px">
+          <div class="proj-section-title">Locais de realização</div>
+          <div class="proj-desc-box" style="max-height:none;font-size:12px">${locaisTexto.replace(/\n/g,'<br>')}</div>
+        </div>`;
+      }
+
+      if (secoes.length > 0) {
+        html += `
+          <div class="proj-section-title">Conteúdo do projeto</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
+            ${secoes.map((s,i)=>`<button class="btn-sm ${i===0?'primary':'ghost'}" id="ptab${i}" onclick="trocarTab(${i},${secoes.length})" style="text-transform:none;letter-spacing:0;font-size:11px">${s.titulo}</button>`).join('')}
+          </div>
+          ${secoes.map((s,i)=>`<div id="ptabcontent${i}" class="proj-desc-box" style="display:${i===0?'block':'none'};max-height:220px">${s.conteudo}</div>`).join('')}`;
+      }
+
+      document.getElementById('pmDesc').innerHTML = html;
+    }
+  } catch(e) { console.warn('Detalhe ProAC:', e.message); }
+}
+
+function trocarTab(idx, total) {
+  for(let i=0;i<total;i++){
+    document.getElementById(`ptab${i}`)?.classList.toggle('primary', i===idx);
+    document.getElementById(`ptab${i}`)?.classList.toggle('ghost', i!==idx);
+    const c = document.getElementById(`ptabcontent${i}`);
+    if(c) c.style.display = i===idx ? 'block' : 'none';
+  }
 }
 
 function fecharProjModal(e) { if (e.target === document.getElementById('projOverlay')) fecharProjModalDireto(); }
@@ -1304,7 +1382,6 @@ async function gerarPitch() {
   const btn = document.getElementById('btnGerarPitch');
   btn.disabled = true;
   btn.textContent = 'Gerando...';
-
   document.getElementById('pitchContent').innerHTML = `
     <div class="pitch-generating">
       <div class="pitch-dots"><span></span><span></span><span></span></div>
@@ -1313,32 +1390,37 @@ async function gerarPitch() {
   document.getElementById('btnCopyPitch').disabled = true;
 
   const lead = projAtual;
-  const desc = document.getElementById('pmDesc').textContent || '';
-  const acess = lead.acessInfo ? `Termos de acessibilidade detectados: ${lead.acessInfo}` : '';
+  const det  = projAtual._detalhes || {};
 
-  const prompt = `Você é um especialista em vendas B2B para a empresa ETC Filmes, que oferece serviços de acessibilidade audiovisual: Libras (tradução/interpretação em Língua Brasileira de Sinais), Legendas (closed caption, legendas descritivas, SDH) e Audiodescrição (AD para pessoas com deficiência visual).
+  const prompt = `Você é um especialista em vendas B2B da ETC Filmes, empresa especializada em acessibilidade audiovisual:
+- Libras: tradução/interpretação em Língua Brasileira de Sinais para vídeos, lives e eventos
+- Legendas: closed caption (CC), legendas descritivas (SDH), legendas para surdos e ensurdecidos
+- Audiodescrição (AD): narração descritiva para pessoas com deficiência visual em filmes, vídeos e eventos
 
-Contexto do projeto prospectado:
-- Nome do projeto: ${lead.projeto}
-- Proponente: ${lead.proponente} (${lead.tipoPessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'})
-- Município: ${lead.municipio}
-- Programa de fomento: ${PROG_LABELS[lead.programa] || lead.programa}
-- Segmento/Categorias: ${lead.segmento}
-- Valor aprovado: ${formatValor(lead.valor)}
-- Ano do edital: ${lead.anoEdital}
-- Tipo: ${lead.tipo === 'pnab' ? 'PNAB - Já tem requisito de acessibilidade' : 'Audiovisual'}
-${acess}
-${desc ? `\nDescrição do projeto:\n${desc.substring(0, 800)}` : ''}
+---
+DADOS DO PROJETO:
+Nome: ${lead.projeto}
+Proponente: ${lead.proponente} (${lead.tipoPessoa === 'PJ' ? 'PJ' : 'PF'})
+Município: ${lead.municipio}
+Programa: ${PROG_LABELS[lead.programa] || lead.programa} | Valor: ${formatValor(lead.valor)}
+${det.dtInicio && det.dtFim ? `Período: ${det.dtInicio} → ${det.dtFim}` : ''}
+${lead.acessInfo ? `Acessibilidade já mencionada no projeto: ${lead.acessInfo}` : ''}
+${det.resumo    ? `\nRESUMO: ${det.resumo.substring(0,500)}`       : ''}
+${det.objetivos ? `\nOBJETIVOS: ${det.objetivos.substring(0,400)}` : ''}
+${det.descricao ? `\nDESCRIÇÃO: ${det.descricao.substring(0,500)}` : ''}
+${det.contrapartida ? `\nCONTRAPARTIDA: ${det.contrapartida.substring(0,300)}` : ''}
+${det.locaisTexto   ? `\nLOCAIS: ${det.locaisTexto}`               : ''}
 
-Crie um pitch de prospecção comercial em português brasileiro, direto e persuasivo, para ser usado como primeiro contato (email ou mensagem). O pitch deve:
-1. Demonstrar que você conhece o projeto específico deles (mencione detalhes relevantes)
-2. Apresentar os serviços da ETC Filmes como solução natural/necessária para o projeto
-3. Destacar que projetos com fomento público frequentemente têm OBRIGAÇÃO de acessibilidade
-4. Ser conciso: máximo 5 parágrafos curtos
-5. Ter uma chamada para ação clara no final
-6. Tom: profissional mas próximo, não genérico
-
-Não use saudação genérica. Comece direto com algo que demonstre conhecimento do projeto.`;
+---
+Crie um pitch de primeiro contato (email ou mensagem) em português brasileiro.
+REGRAS:
+1. Comece mencionando algo específico do projeto — nome, tipo de ação, público, local — que prove que você leu
+2. Conecte os serviços da ETC Filmes às necessidades REAIS deste projeto
+3. Cite a obrigação legal de acessibilidade em projetos com fomento público (Lei Brasileira de Inclusão, Art. 42 e 67)
+4. Se o projeto já menciona acessibilidade, elogie e ofereça expertise para executar com qualidade
+5. Máximo 4 parágrafos curtos + 1 CTA direta
+6. Tom: profissional e próximo, nunca genérico ou robótico
+7. NÃO use "Prezado(a)" ou saudação genérica — vá direto ao ponto`;
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1352,17 +1434,22 @@ Não use saudação genérica. Comece direto com algo que demonstre conhecimento
     });
     const data = await resp.json();
     const texto = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
-
     if (texto) {
       document.getElementById('pitchContent').innerHTML = `<div class="pitch-text">${escapeHtml(texto)}</div>`;
       document.getElementById('btnCopyPitch').disabled = false;
       btn.textContent = '↻ Regerar';
     } else {
-      document.getElementById('pitchContent').innerHTML = `<span class="pitch-empty">Erro ao gerar pitch. Tente novamente.</span>`;
+      document.getElementById('pitchContent').innerHTML = `<span class="pitch-empty">Erro: ${data.error?.message || 'Resposta vazia'}</span>`;
       btn.textContent = '✦ Gerar pitch';
     }
   } catch(e) {
-    document.getElementById('pitchContent').innerHTML = `<span class="pitch-empty">Erro de conexão: ${e.message}</span>`;
+    document.getElementById('pitchContent').innerHTML = `<span class="pitch-empty">
+      Falha de conexão: ${e.message}<br>
+      <small style="color:var(--text4);line-height:1.8">
+        A API da Anthropic bloqueia chamadas diretas do browser (CORS).<br>
+        É necessário um proxy simples — posso criar um para você no Vercel em minutos.
+      </small>
+    </span>`;
     btn.textContent = '✦ Gerar pitch';
   }
   btn.disabled = false;
