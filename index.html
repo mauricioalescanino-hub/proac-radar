@@ -1654,25 +1654,98 @@ function atualizarMoskitBtn() {
 }
 atualizarMoskitBtn();
 
+async function carregarLeadsSupabase() {
+  try {
+    // Busca em páginas de 1000 (limite do Supabase por request)
+    let todos = [], from = 0, tam = 1000;
+    while (true) {
+      const { data, error } = await supa
+        .from('proac_leads')
+        .select('*')
+        .range(from, from + tam - 1);
+      if (error) throw error;
+      todos = todos.concat(data || []);
+      if (!data || data.length < tam) break;
+      from += tam;
+    }
+    if (todos.length === 0) return false;
+
+    // Mapeia colunas do banco para o formato interno
+    todosLeads = todos.map(r => ({
+      id:          r.id,
+      novo:        r.novo || false,
+      tipo:        r.tipo || 'audiovisual',
+      aprovacao:   r.aprovacao || '',
+      programa:    r.programa || '',
+      projeto:     r.projeto || '',
+      inscricao:   r.inscricao || '',
+      proponente:  r.proponente || '',
+      tipoPessoa:  r.tipo_pessoa || '',
+      segmento:    r.segmento || '',
+      anoEdital:   r.ano_edital || '',
+      status:      r.status || '',
+      valor:       r.valor || 0,
+      municipio:   r.municipio || '',
+      acessInfo:   r.acess_info || ''
+    }));
+
+    // Atualiza IDs vistos
+    idsVistos = new Set(todosLeads.map(l => l.id));
+    localStorage.setItem(IDS_KEY, JSON.stringify([...idsVistos]));
+
+    return true;
+  } catch(e) {
+    console.warn('Supabase leads load error:', e.message);
+    return false;
+  }
+}
+
 // ── BOOT ──
 const ul=localStorage.getItem('etc_ultima');
 if(ul){document.getElementById('ultimaAtualizacao').textContent='Atualizado '+ul;document.getElementById('livePill').className='live-pill';document.getElementById('livePill').textContent='Dados locais';}
 renderTabela();
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharModalDireto();fecharProjModalDireto();fecharCfgDireto();fecharSellerModalDireto();}});
 
-// Carrega CRM do Supabase ao iniciar
+// Carrega leads + CRM do Supabase ao iniciar
 (async () => {
   const pill = document.getElementById('livePill');
-  const prevText = pill.textContent;
   pill.textContent = 'Sincronizando...';
   pill.className = 'live-pill loading';
-  await carregarCRMSupabase();
-  pill.textContent = prevText || 'Sem dados';
-  pill.className = ul ? 'live-pill' : 'live-pill';
-  if (Object.keys(crmData).length > 0) {
-    log('CRM carregado do Supabase: ' + Object.keys(crmData).length + ' registros', 'ok');
-    setTimeout(clearLog, 2500);
+
+  // Carrega leads primeiro
+  const leadsOk = await carregarLeadsSupabase();
+  if (leadsOk) {
+    log('Leads carregados do Supabase: ' + todosLeads.length + ' projetos', 'ok');
+    const agora = localStorage.getItem('etc_ultima') || '';
+    document.getElementById('ultimaAtualizacao').textContent = agora ? 'Atualizado ' + agora : 'Carregado do banco';
+    document.getElementById('totalLeads').textContent = todosLeads.length + ' projetos';
+    pill.className = 'live-pill ok';
+    pill.textContent = 'Dados atuais';
   }
+
+  // Depois carrega CRM
+  await carregarCRMSupabase();
+
+  // Renderiza tudo
+  if (leadsOk) {
+    atualizarMetrics();
+    popularFiltros();
+    renderProgTags();
+    renderCharts();
+    atualizarCRMStats();
+    resetPagina();
+  }
+  renderTabela();
+
+  if (!leadsOk) {
+    pill.textContent = ul ? 'Sem dados locais' : 'Sem dados';
+    pill.className = 'live-pill';
+  }
+
+  if (Object.keys(crmData).length > 0) {
+    log('CRM carregado: ' + Object.keys(crmData).length + ' registros', 'ok');
+  }
+  setTimeout(clearLog, 3000);
 })();
 </script>
 </body>
