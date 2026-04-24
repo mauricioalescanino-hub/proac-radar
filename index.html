@@ -297,6 +297,142 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
   .metrics { grid-template-columns: repeat(2,1fr); }
   .charts-row { grid-template-columns: 1fr; }
 }
+
+/* ── MOSKIT CONFIG PANEL ── */
+.moskit-config-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.55);
+  font-family: var(--cond); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer;
+  transition: all .15s;
+}
+.moskit-config-btn:hover { border-color: rgba(255,255,255,0.35); color: rgba(255,255,255,0.85); }
+.moskit-config-btn.connected { border-color: rgba(16,185,129,0.4); color: #10b981; }
+.moskit-config-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink:0; }
+
+/* ── CONFIG MODAL ── */
+.cfg-overlay {
+  position: fixed; inset: 0; background: rgba(10,20,40,0.6); z-index: 600;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.cfg-overlay.open { opacity: 1; pointer-events: all; }
+.cfg-modal {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  width: 460px; max-width: 95vw; box-shadow: var(--shadow-md);
+  transform: translateY(12px); transition: transform .2s;
+}
+.cfg-overlay.open .cfg-modal { transform: translateY(0); }
+.cfg-header { padding: 20px 24px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.cfg-header h3 { font-family: var(--cond); font-size: 15px; font-weight: 700; }
+.cfg-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.cfg-footer { padding: 14px 24px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+.cfg-note { font-size: 11px; color: var(--text3); background: var(--bg3); border-radius: var(--radius-sm); padding: 10px 12px; line-height: 1.7; }
+.moskit-status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-family: var(--cond); font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+.moskit-status-badge.ok { color: #059669; background: #ecfdf5; border: 1px solid rgba(5,150,105,0.2); }
+.moskit-status-badge.err { color: var(--red); background: var(--red-bg); border: 1px solid rgba(220,38,38,0.2); }
+.moskit-status-badge.idle { color: var(--text3); background: var(--bg3); border: 1px solid var(--border); }
+
+/* ── PROJETO DETAIL MODAL ── */
+.proj-overlay {
+  position: fixed; inset: 0; background: rgba(10,20,40,0.65); z-index: 700;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 30px 16px; overflow-y: auto;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.proj-overlay.open { opacity: 1; pointer-events: all; }
+.proj-modal {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 14px;
+  width: 780px; max-width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  transform: translateY(16px); transition: transform .25s; margin: auto;
+}
+.proj-overlay.open .proj-modal { transform: translateY(0); }
+
+.proj-modal-header {
+  padding: 22px 28px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+}
+.proj-modal-badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.proj-modal-title { font-family: var(--cond); font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.25; }
+.proj-modal-meta { font-size: 12px; color: var(--text3); margin-top: 5px; display: flex; flex-wrap: wrap; gap: 12px; }
+.proj-modal-meta span { display: flex; align-items: center; gap: 4px; }
+
+.proj-modal-body { padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+
+.proj-section-title {
+  font-family: var(--cond); font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .12em; color: var(--text4); margin-bottom: 10px;
+}
+
+.proj-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.proj-info-card {
+  background: var(--bg3); border-radius: var(--radius-sm); padding: 10px 13px;
+}
+.proj-info-card .label { font-size: 10px; color: var(--text4); margin-bottom: 3px; font-family: var(--cond); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.proj-info-card .val { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.4; }
+
+.proj-desc-box {
+  background: var(--bg3); border-radius: var(--radius); padding: 14px 16px;
+  font-size: 12.5px; color: var(--text2); line-height: 1.7; max-height: 200px; overflow-y: auto;
+}
+
+/* ── PITCH BOX ── */
+.pitch-box {
+  border: 1px solid var(--blue-bdr); border-radius: var(--radius);
+  background: linear-gradient(135deg, #f0f6ff 0%, #f8fbff 100%);
+  overflow: hidden;
+}
+.pitch-box-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--blue-bdr);
+  background: var(--blue-dim);
+}
+.pitch-box-title { font-family: var(--cond); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--blue); display: flex; align-items: center; gap: 7px; }
+.pitch-box-title::before { content: '✦'; font-size: 10px; }
+.pitch-actions { display: flex; gap: 7px; }
+.btn-sm {
+  font-family: var(--cond); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  padding: 5px 12px; border-radius: var(--radius-sm); cursor: pointer; border: none; transition: all .15s;
+}
+.btn-sm.primary { background: var(--blue); color: #fff; }
+.btn-sm.primary:hover { background: #2b7fff; }
+.btn-sm.ghost { background: none; border: 1px solid var(--blue-bdr); color: var(--blue); }
+.btn-sm.ghost:hover { background: var(--blue-dim); }
+.btn-sm:disabled { opacity: .4; cursor: not-allowed; }
+
+.pitch-content {
+  padding: 16px; font-size: 13px; color: var(--text2); line-height: 1.8;
+  min-height: 80px;
+}
+.pitch-empty { color: var(--text4); font-style: italic; font-size: 12px; }
+.pitch-generating {
+  display: flex; align-items: center; gap: 10px; color: var(--blue); font-size: 12px; font-family: var(--cond); font-weight: 600;
+}
+.pitch-dots span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--blue); margin: 0 2px; animation: dot-bounce .9s ease-in-out infinite; }
+.pitch-dots span:nth-child(2) { animation-delay: .15s; }
+.pitch-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes dot-bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+.pitch-text { white-space: pre-wrap; }
+.pitch-copied { color: var(--green) !important; }
+
+.proj-modal-footer {
+  padding: 14px 28px 20px; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.proj-modal-footer-left { display: flex; gap: 8px; align-items: center; }
+
+/* Moskit sync button */
+.btn-moskit {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+  padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: all .15s;
+  border: 1px solid rgba(5,150,105,0.3); color: var(--green); background: var(--green-bg);
+}
+.btn-moskit:hover { background: #d1fae5; border-color: var(--green); }
+.btn-moskit:disabled { opacity: .4; cursor: not-allowed; }
+.btn-moskit.syncing { color: var(--blue); border-color: var(--blue-bdr); background: var(--blue-dim); }
+.moskit-sync-result { font-size: 11px; color: var(--text3); }
 </style>
 </head>
 <body>
@@ -312,6 +448,10 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
       <div class="brand-subtitle">ProAC Radar</div>
     </div>
     <div class="topbar-right">
+      <button class="moskit-config-btn" id="moskitConfigBtn" onclick="abrirCfg()">
+        <span class="dot"></span>
+        Moskit CRM
+      </button>
       <div class="live-pill" id="livePill">Sem dados</div>
       <div class="topbar-meta">
         <span id="ultimaAtualizacao">Nunca atualizado</span><br>
@@ -476,6 +616,115 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
       </div>
     </div>
   </main>
+</div>
+
+<!-- MODAL DETALHE DO PROJETO + PITCH IA -->
+<div class="proj-overlay" id="projOverlay" onclick="fecharProjModal(event)">
+  <div class="proj-modal" id="projModal">
+    <div class="proj-modal-header">
+      <div style="flex:1;min-width:0">
+        <div class="proj-modal-badge-row">
+          <span id="pmBadgeProg" class="prog-badge">—</span>
+          <span id="pmBadgeTipo" class="status-badge" style="background:#f5f3ff;color:#7c3aed;border:1px solid rgba(124,58,237,0.2)"></span>
+          <span id="pmBadgeStatus" class="status-badge"></span>
+        </div>
+        <div class="proj-modal-title" id="pmTitulo">—</div>
+        <div class="proj-modal-meta">
+          <span id="pmProponente">—</span>
+          <span id="pmMunicipio">—</span>
+          <span id="pmInscricao">—</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="fecharProjModalDireto()" style="font-size:22px;flex-shrink:0">×</button>
+    </div>
+    <div class="proj-modal-body">
+
+      <!-- INFO CARDS -->
+      <div>
+        <div class="proj-section-title">Dados do projeto</div>
+        <div class="proj-info-grid" id="pmInfoGrid">
+          <div class="proj-info-card"><div class="label">Valor aprovado</div><div class="val" id="pmValor">—</div></div>
+          <div class="proj-info-card"><div class="label">Data aprovação</div><div class="val" id="pmData">—</div></div>
+          <div class="proj-info-card"><div class="label">Ano do edital</div><div class="val" id="pmAno">—</div></div>
+          <div class="proj-info-card"><div class="label">Tipo proponente</div><div class="val" id="pmTipoPessoa">—</div></div>
+          <div class="proj-info-card"><div class="label">Segmento</div><div class="val" id="pmSegmento">—</div></div>
+          <div class="proj-info-card"><div class="label">Status ProAC</div><div class="val" id="pmStatusApi">—</div></div>
+        </div>
+      </div>
+
+      <!-- DESCRIÇÃO -->
+      <div id="pmDescBloco" style="display:none">
+        <div class="proj-section-title">Descrição / Objeto do projeto</div>
+        <div class="proj-desc-box" id="pmDesc"></div>
+      </div>
+
+      <!-- ACESSIBILIDADE -->
+      <div id="pmAcessBloco" style="display:none">
+        <div class="proj-section-title">Termos de acessibilidade detectados</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="pmAcessTags"></div>
+      </div>
+
+      <!-- PITCH IA -->
+      <div class="pitch-box">
+        <div class="pitch-box-header">
+          <div class="pitch-box-title">Pitch comercial — ETC Filmes IA</div>
+          <div class="pitch-actions">
+            <button class="btn-sm ghost" id="btnCopyPitch" onclick="copiarPitch()" disabled>Copiar</button>
+            <button class="btn-sm primary" id="btnGerarPitch" onclick="gerarPitch()">✦ Gerar pitch</button>
+          </div>
+        </div>
+        <div class="pitch-content" id="pitchContent">
+          <span class="pitch-empty">Clique em "Gerar pitch" para criar uma abordagem comercial personalizada para este projeto, focada nos serviços de Libras, Legendas e Audiodescrição da ETC Filmes.</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="proj-modal-footer">
+      <div class="proj-modal-footer-left">
+        <button class="btn-moskit" id="btnEnviarMoskit" onclick="enviarParaMoskit()" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Enviar ao Moskit
+        </button>
+        <span class="moskit-sync-result" id="moskitSyncResult"></span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-cancel" onclick="fecharProjModalDireto()">Fechar</button>
+        <button class="btn-save" onclick="abrirCrmDoProj()">📋 Editar CRM</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIG MOSKIT -->
+<div class="cfg-overlay" id="cfgOverlay" onclick="fecharCfg(event)">
+  <div class="cfg-modal">
+    <div class="cfg-header">
+      <h3>⚙️ Configuração — Moskit CRM</h3>
+      <button class="modal-close" onclick="fecharCfgDireto()">×</button>
+    </div>
+    <div class="cfg-body">
+      <div class="form-group">
+        <label style="font-family:var(--cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Chave de API do Moskit</label>
+        <input type="password" id="cfgMoskitKey" placeholder="Sua API Key do Moskit CRM" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 11px;border-radius:var(--radius-sm);outline:none;width:100%;transition:border-color .15s">
+      </div>
+      <div class="form-group">
+        <label style="font-family:var(--cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3)">Pipeline (ID do funil)</label>
+        <input type="text" id="cfgMoskitPipeline" placeholder="ID do pipeline no Moskit (opcional)" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 11px;border-radius:var(--radius-sm);outline:none;width:100%;transition:border-color .15s">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="moskit-status-badge idle" id="moskitStatusBadge">Não testado</span>
+        <button class="btn-sm primary" onclick="testarMoskit()" id="btnTestarMoskit">Testar conexão</button>
+      </div>
+      <div class="cfg-note">
+        A chave de API é salva apenas no seu navegador (localStorage). Para criar negócios no Moskit automaticamente ao prospectar, ative a integração e clique em "Enviar ao Moskit" nos detalhes de cada projeto.<br><br>
+        <strong>Importante:</strong> A API do Moskit não aceita chamadas diretas do browser (CORS). Recomendamos subir um proxy simples (Node/Vercel) ou usar a extensão Moskit com webhook.
+      </div>
+    </div>
+    <div class="cfg-footer">
+      <button class="btn-cancel" onclick="fecharCfgDireto()">Cancelar</button>
+      <button class="btn-save" onclick="salvarCfgMoskit()">Salvar configuração</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL CRM -->
@@ -717,7 +966,7 @@ function renderTabela(){
       <td><span class="prog-badge" style="background:${cor}18;color:${cor};border:1px solid ${cor}35">${label}</span></td>
       <td style="max-width:240px">
         ${novoTag}${pnabTag}
-        <div class="proj-name">${l.projeto}</div>
+        <div class="proj-name" style="cursor:pointer;color:var(--blue)" onclick="abrirProjModal('${l.id}')">${l.projeto}</div>
         <div class="proj-num">${l.inscricao}</div>
         <div class="prop-name" style="margin-top:3px">${l.proponente}</div>
         <div class="prop-tipo">${l.tipoPessoa} · ${l.municipio}</div>
@@ -803,11 +1052,274 @@ function pagina(dir){paginaAtual+=dir;renderTabela();document.querySelector('.ta
 function resetPagina(){paginaAtual=0;}
 function sortBy(col){sortCol===col?sortAsc=!sortAsc:(sortCol=col,sortAsc=false);resetPagina();renderTabela();}
 
+
+// ── PROJ DETAIL MODAL ──
+let projAtual = null;
+
+function abrirProjModal(id) {
+  const lead = todosLeads.find(l => l.id === id);
+  if (!lead) return;
+  projAtual = lead;
+
+  // Reset pitch
+  document.getElementById('pitchContent').innerHTML = '<span class="pitch-empty">Clique em "Gerar pitch" para criar uma abordagem comercial personalizada para este projeto, focada nos serviços de Libras, Legendas e Audiodescrição da ETC Filmes.</span>';
+  document.getElementById('btnCopyPitch').disabled = true;
+  document.getElementById('btnGerarPitch').disabled = false;
+  document.getElementById('btnGerarPitch').textContent = '✦ Gerar pitch';
+  document.getElementById('moskitSyncResult').textContent = '';
+
+  const cor = CORES_PROG[lead.programa] || '#94a3b8';
+  const label = PROG_LABELS[lead.programa] || lead.programa;
+  const sl = {SELECTED:{t:'Aprovado',c:'#059669',bg:'#ecfdf5'},SURROGATE:{t:'Suplente',c:'#d97706',bg:'#fffbeb'},ICMS_ACCOUNTABILITY_CREATED:{t:'Prest. Contas',c:'#6b7280',bg:'#f9fafb'}}[lead.status] || {t:lead.status,c:'#6b7280',bg:'#f9fafb'};
+
+  document.getElementById('pmBadgeProg').textContent = label;
+  document.getElementById('pmBadgeProg').style.cssText = `background:${cor}18;color:${cor};border:1px solid ${cor}35`;
+  document.getElementById('pmBadgeTipo').textContent = lead.tipo === 'pnab' ? '♿ PNAB Acessibilidade' : '🎬 Audiovisual';
+  document.getElementById('pmBadgeTipo').style.display = lead.tipo ? '' : 'none';
+  document.getElementById('pmBadgeStatus').textContent = sl.t;
+  document.getElementById('pmBadgeStatus').style.cssText = `background:${sl.bg};color:${sl.c};border:1px solid ${sl.c}30`;
+  document.getElementById('pmTitulo').textContent = lead.projeto || '—';
+  document.getElementById('pmProponente').textContent = '👤 ' + (lead.proponente || '—');
+  document.getElementById('pmMunicipio').textContent = '📍 ' + (lead.municipio || '—');
+  document.getElementById('pmInscricao').textContent = '🔢 ' + (lead.inscricao || '—');
+  document.getElementById('pmValor').textContent = formatValor(lead.valor);
+  document.getElementById('pmData').textContent = formatDate(lead.aprovacao);
+  document.getElementById('pmAno').textContent = lead.anoEdital || '—';
+  document.getElementById('pmTipoPessoa').textContent = lead.tipoPessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física';
+  document.getElementById('pmSegmento').textContent = lead.segmento || '—';
+  document.getElementById('pmStatusApi').textContent = ({SELECTED:'Aprovado',SURROGATE:'Suplente',ICMS_ACCOUNTABILITY_CREATED:'Prest. de Contas'}[lead.status]) || lead.status || '—';
+
+  // Acessibilidade tags
+  if (lead.acessInfo) {
+    const tags = lead.acessInfo.split(',').map(t => t.trim()).filter(Boolean);
+    document.getElementById('pmAcessTags').innerHTML = tags.map(t => `<span style="background:#f5f3ff;color:#7c3aed;border:1px solid rgba(124,58,237,0.25);padding:3px 10px;border-radius:4px;font-size:11px;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.05em">${t}</span>`).join('');
+    document.getElementById('pmAcessBloco').style.display = '';
+  } else {
+    document.getElementById('pmAcessBloco').style.display = 'none';
+  }
+
+  // Desc placeholder — tenta buscar detalhes da API
+  document.getElementById('pmDescBloco').style.display = 'none';
+  buscarDetalhesProj(lead);
+
+  // Moskit button
+  const moskitKey = localStorage.getItem('etc_moskit_key') || '';
+  document.getElementById('btnEnviarMoskit').disabled = !moskitKey;
+
+  document.getElementById('projOverlay').classList.add('open');
+}
+
+async function buscarDetalhesProj(lead) {
+  try {
+    const r = await fetch(`https://fomentocultsp.sp.gov.br/api/publicConsultation/${lead.id}`, {headers: HEADERS});
+    if (!r.ok) return;
+    const j = await r.json();
+    const data = j.DATA || j;
+    const sub = data.submission || {};
+    // Tentar pegar descrição/objeto
+    const desc = sub.description || sub.object || sub.objective || data.description || '';
+    if (desc) {
+      document.getElementById('pmDesc').innerHTML = desc.replace(/<[^>]+>/g, ' ').trim() || desc;
+      document.getElementById('pmDescBloco').style.display = '';
+    }
+    // Enriquecer com dados extras se disponíveis
+    projAtual._raw = data;
+  } catch(e) { /* silencioso */ }
+}
+
+function fecharProjModal(e) { if (e.target === document.getElementById('projOverlay')) fecharProjModalDireto(); }
+function fecharProjModalDireto() { document.getElementById('projOverlay').classList.remove('open'); projAtual = null; }
+
+function abrirCrmDoProj() {
+  fecharProjModalDireto();
+  if (projAtual) setTimeout(() => abrirModal(projAtual.id), 80);
+}
+
+// ── GERAÇÃO DE PITCH IA ──
+async function gerarPitch() {
+  if (!projAtual) return;
+  const btn = document.getElementById('btnGerarPitch');
+  btn.disabled = true;
+  btn.textContent = 'Gerando...';
+
+  document.getElementById('pitchContent').innerHTML = `
+    <div class="pitch-generating">
+      <div class="pitch-dots"><span></span><span></span><span></span></div>
+      Analisando projeto e criando pitch personalizado...
+    </div>`;
+  document.getElementById('btnCopyPitch').disabled = true;
+
+  const lead = projAtual;
+  const desc = document.getElementById('pmDesc').textContent || '';
+  const acess = lead.acessInfo ? `Termos de acessibilidade detectados: ${lead.acessInfo}` : '';
+
+  const prompt = `Você é um especialista em vendas B2B para a empresa ETC Filmes, que oferece serviços de acessibilidade audiovisual: Libras (tradução/interpretação em Língua Brasileira de Sinais), Legendas (closed caption, legendas descritivas, SDH) e Audiodescrição (AD para pessoas com deficiência visual).
+
+Contexto do projeto prospectado:
+- Nome do projeto: ${lead.projeto}
+- Proponente: ${lead.proponente} (${lead.tipoPessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'})
+- Município: ${lead.municipio}
+- Programa de fomento: ${PROG_LABELS[lead.programa] || lead.programa}
+- Segmento/Categorias: ${lead.segmento}
+- Valor aprovado: ${formatValor(lead.valor)}
+- Ano do edital: ${lead.anoEdital}
+- Tipo: ${lead.tipo === 'pnab' ? 'PNAB - Já tem requisito de acessibilidade' : 'Audiovisual'}
+${acess}
+${desc ? `\nDescrição do projeto:\n${desc.substring(0, 800)}` : ''}
+
+Crie um pitch de prospecção comercial em português brasileiro, direto e persuasivo, para ser usado como primeiro contato (email ou mensagem). O pitch deve:
+1. Demonstrar que você conhece o projeto específico deles (mencione detalhes relevantes)
+2. Apresentar os serviços da ETC Filmes como solução natural/necessária para o projeto
+3. Destacar que projetos com fomento público frequentemente têm OBRIGAÇÃO de acessibilidade
+4. Ser conciso: máximo 5 parágrafos curtos
+5. Ter uma chamada para ação clara no final
+6. Tom: profissional mas próximo, não genérico
+
+Não use saudação genérica. Comece direto com algo que demonstre conhecimento do projeto.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const texto = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+
+    if (texto) {
+      document.getElementById('pitchContent').innerHTML = `<div class="pitch-text">${escapeHtml(texto)}</div>`;
+      document.getElementById('btnCopyPitch').disabled = false;
+      btn.textContent = '↻ Regerar';
+    } else {
+      document.getElementById('pitchContent').innerHTML = `<span class="pitch-empty">Erro ao gerar pitch. Tente novamente.</span>`;
+      btn.textContent = '✦ Gerar pitch';
+    }
+  } catch(e) {
+    document.getElementById('pitchContent').innerHTML = `<span class="pitch-empty">Erro de conexão: ${e.message}</span>`;
+    btn.textContent = '✦ Gerar pitch';
+  }
+  btn.disabled = false;
+}
+
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function copiarPitch() {
+  const el = document.getElementById('pitchContent').querySelector('.pitch-text');
+  if (!el) return;
+  try {
+    await navigator.clipboard.writeText(el.textContent);
+    const btn = document.getElementById('btnCopyPitch');
+    btn.textContent = '✓ Copiado!';
+    btn.classList.add('pitch-copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('pitch-copied'); }, 2000);
+  } catch(e) {}
+}
+
+// ── MOSKIT CRM INTEGRATION ──
+const MOSKIT_PROXY = 'https://api.moskit.com.br/v2'; // direto (CORS pode bloquear — ver nota cfg)
+
+async function enviarParaMoskit() {
+  const key = localStorage.getItem('etc_moskit_key');
+  if (!key || !projAtual) return;
+  const btn = document.getElementById('btnEnviarMoskit');
+  const res = document.getElementById('moskitSyncResult');
+  btn.disabled = true;
+  btn.classList.add('syncing');
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="spin"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> Enviando...`;
+  res.textContent = '';
+
+  const lead = projAtual;
+  const pipeline = localStorage.getItem('etc_moskit_pipeline') || '';
+  const crm = getCRM(lead.id);
+  const pitch = document.getElementById('pitchContent').querySelector('.pitch-text')?.textContent || '';
+
+  const payload = {
+    name: lead.projeto,
+    value: lead.valor || 0,
+    description: `ProAC Radar — ${PROG_LABELS[lead.programa] || lead.programa}\nProponente: ${lead.proponente}\nMunicípio: ${lead.municipio}\nInscrição: ${lead.inscricao}\nValor: ${formatValor(lead.valor)}\nSegmento: ${lead.segmento}${pitch ? '\n\n--- PITCH ETC FILMES ---\n' + pitch.substring(0, 500) : ''}`,
+    ...(pipeline ? {salesFunnelId: Number(pipeline)} : {})
+  };
+
+  try {
+    const r = await fetch(`${MOSKIT_PROXY}/deals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': key },
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (r.ok && (d.id || d.deal)) {
+      res.innerHTML = `<span style="color:var(--green)">✓ Negócio criado no Moskit!</span>`;
+      // Atualiza CRM local tb
+      if (!crmData[lead.id]) crmData[lead.id] = {};
+      crmData[lead.id].moskitId = d.id || d.deal?.id;
+      saveCRM();
+    } else {
+      res.innerHTML = `<span style="color:var(--red)">Erro: ${d.message || d.error || r.status}</span>`;
+    }
+  } catch(e) {
+    res.innerHTML = `<span style="color:var(--orange)">CORS bloqueado. Configure um proxy. <a href="#" onclick="abrirCfg()" style="color:var(--blue)">Ver config</a></span>`;
+  }
+  btn.disabled = false;
+  btn.classList.remove('syncing');
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Enviar ao Moskit`;
+}
+
+// ── CFG MOSKIT MODAL ──
+function abrirCfg() {
+  document.getElementById('cfgMoskitKey').value = localStorage.getItem('etc_moskit_key') || '';
+  document.getElementById('cfgMoskitPipeline').value = localStorage.getItem('etc_moskit_pipeline') || '';
+  atualizarMoskitBtn();
+  document.getElementById('cfgOverlay').classList.add('open');
+}
+function fecharCfg(e) { if (e.target === document.getElementById('cfgOverlay')) fecharCfgDireto(); }
+function fecharCfgDireto() { document.getElementById('cfgOverlay').classList.remove('open'); }
+
+function salvarCfgMoskit() {
+  const k = document.getElementById('cfgMoskitKey').value.trim();
+  const p = document.getElementById('cfgMoskitPipeline').value.trim();
+  if (k) localStorage.setItem('etc_moskit_key', k); else localStorage.removeItem('etc_moskit_key');
+  if (p) localStorage.setItem('etc_moskit_pipeline', p); else localStorage.removeItem('etc_moskit_pipeline');
+  atualizarMoskitBtn();
+  fecharCfgDireto();
+}
+
+async function testarMoskit() {
+  const key = document.getElementById('cfgMoskitKey').value.trim();
+  if (!key) return;
+  const badge = document.getElementById('moskitStatusBadge');
+  const btn = document.getElementById('btnTestarMoskit');
+  badge.className = 'moskit-status-badge idle'; badge.textContent = 'Testando...';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`${MOSKIT_PROXY}/users/me`, { headers: { 'apikey': key } });
+    if (r.ok) {
+      badge.className = 'moskit-status-badge ok'; badge.textContent = '✓ Conexão OK';
+    } else {
+      badge.className = 'moskit-status-badge err'; badge.textContent = `Erro ${r.status}`;
+    }
+  } catch(e) {
+    badge.className = 'moskit-status-badge err'; badge.textContent = 'CORS/rede bloqueado';
+  }
+  btn.disabled = false;
+}
+
+function atualizarMoskitBtn() {
+  const k = localStorage.getItem('etc_moskit_key');
+  const btn = document.getElementById('moskitConfigBtn');
+  if (k) { btn.classList.add('connected'); btn.innerHTML = '<span class="dot"></span>Moskit ✓'; }
+  else { btn.classList.remove('connected'); btn.innerHTML = '<span class="dot"></span>Moskit CRM'; }
+}
+atualizarMoskitBtn();
+
 // Restaurar estado
 const ul=localStorage.getItem('etc_ultima');
 if(ul){document.getElementById('ultimaAtualizacao').textContent='Atualizado '+ul;document.getElementById('livePill').className='live-pill';document.getElementById('livePill').textContent='Dados locais';}
 renderTabela();
-document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharModalDireto();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharModalDireto();fecharProjModalDireto();fecharCfgDireto();}});
 </script>
 </body>
 </html>
