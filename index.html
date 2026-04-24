@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProAC Radar — ETC Filmes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:     #0a1628;
+  --navy2:    #0f1e38;
+  --navy3:    #162847;
+  --navy4:    #1d3256;
+  --blue:     #1a6ef5;
+  --blue-lt:  #4a8fff;
+  --blue-dim: rgba(26,110,245,0.12);
+  --cyan:     #00c9e0;
+  --cyan-dim: rgba(0,201,224,0.1);
+  --white:    #f0f4ff;
+  --white2:   #c8d4ee;
+  --muted:    #6b7fa3;
+  --muted2:   #3d5070;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.12);
+  --border3:  rgba(26,110,245,0.3);
+  --novo-bg:  rgba(255,183,0,0.08);
+  --novo-bdr: rgba(255,183,0,0.35);
+  --novo-txt: #ffb700;
+  --green:    #00d68f;
+  --orange:   #ff8c42;
+  --sans:     'Barlow', sans-serif;
+  --cond:     'Barlow Condensed', sans-serif;
+  --radius:   8px;
+  --radius-sm:5px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--navy);
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 60px 1fr;
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  grid-column: 1 / -1;
+  background: var(--navy2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Logo ETC em SVG inline */
+.etc-logo {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.etc-logo .e { color: var(--blue-lt); }
+.etc-logo .t { color: var(--white); }
+.etc-logo .c { color: var(--cyan); }
+.etc-wordmark {
+  font-family: var(--cond);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.brand-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border2);
+}
+
+.brand-subtitle {
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-meta {
+  text-align: right;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.topbar-meta strong { color: var(--white2); font-weight: 500; }
+
+/* ── LIVE INDICATOR ── */
+.live-dot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--cond);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.live-dot::before {
+  content: '';
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 0 rgba(0,214,143,0.4);
+  animation: ripple 2s ease-out infinite;
+}
+.live-dot.idle::before { background: var(--muted2); animation: none; box-shadow: none; }
+@keyframes ripple {
+  0% { box-shadow: 0 0 0 0 rgba(0,214,143,0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(0,214,143,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,214,143,0); }
+}
+
+/* ── BTN ATUALIZAR ── */
+.btn-atualizar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 9px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .15s, transform .1s, opacity .15s;
+  white-space: nowrap;
+}
+.btn-atualizar:hover { background: var(--blue-lt); }
+.btn-atualizar:active { transform: scale(.97); }
+.btn-atualizar:disabled { opacity: .4; cursor: not-allowed; }
+.btn-atualizar svg { width: 14px; height: 14px; flex-shrink: 0; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--navy2);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted2) transparent;
+}
+
+.sidebar-section { padding: 0 18px; margin-bottom: 24px; }
+
+.sidebar-label {
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--muted2);
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.filter-group { margin-bottom: 10px; }
+.filter-group label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 5px;
+  padding: 0 2px;
+}
+.filter-group select,
+.filter-group input {
+  width: 100%;
+  background: var(--navy3);
+  border: 1px solid var(--border);
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 12px;
+  padding: 8px 11px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color .15s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.filter-group select:focus,
+.filter-group input:focus { border-color: var(--border3); }
+.filter-group input::placeholder { color: var(--muted2); }
+.filter-group select option { background: var(--navy2); }
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 18px 20px;
+}
+
+/* Programa tags */
+.prog-tags { display: flex; flex-direction: column; gap: 3px; }
+.prog-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .12s;
+  border: 1px solid transparent;
+  color: var(--white2);
+}
+.prog-tag:hover { background: var(--navy3); }
+.prog-tag.active { background: var(--blue-dim); border-color: var(--border3); color: var(--white); }
+.prog-tag .prog-left { display: flex; align-items: center; gap: 8px; }
+.prog-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.prog-count {
+  font-size: 10px;
+  font-family: var(--cond);
+  font-weight: 600;
+  background: var(--navy);
+  padding: 1px 7px;
+  border-radius: 10px;
+  color: var(--muted);
+}
+
+/* ── MAIN ── */
+.main {
+  padding: 28px;
+  background: var(--navy);
+  overflow-y: auto;
+}
+
+/* ── PROGRESS ── */
+.progress-bar {
+  height: 2px;
+  background: var(--navy3);
+  border-radius: 2px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  border-radius: 2px;
+  transition: width .4s ease;
+  width: 0%;
+}
+
+/* ── LOG ── */
+.log-wrap {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: var(--muted);
+  display: none;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.log-wrap.visible { display: block; }
+.log-line { margin-bottom: 2px; }
+.log-line.ok { color: var(--green); }
+.log-line.err { color: #ff6b6b; }
+.log-line.prog { color: var(--cyan); }
+
+/* ── METRICS ── */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.metric {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s, transform .15s;
+}
+.metric:hover { border-color: var(--border3); transform: translateY(-1px); }
+.metric-top-line {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--metric-color, var(--blue));
+  opacity: 0.7;
+}
+.metric-label {
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.metric-val {
+  font-family: var(--cond);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.metric-val.blue { color: var(--blue-lt); }
+.metric-val.cyan { color: var(--cyan); }
+.metric-val.green { color: var(--green); }
+.metric-val.orange { color: var(--orange); }
+.metric-val.novo { color: var(--novo-txt); }
+
+/* ── CHARTS ── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1.7fr;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.chart-card {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.chart-title {
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+/* ── TABLE ── */
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.table-count {
+  font-size: 12px;
+  color: var(--muted);
+}
+.table-count strong { color: var(--white); }
+
+.table-wrap {
+  background: var(--navy2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.table-scroll { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  background: var(--navy3);
+  padding: 10px 14px;
+  text-align: left;
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: color .12s;
+}
+thead th:hover { color: var(--white); }
+thead th.sorted { color: var(--blue-lt); }
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--navy3); }
+tbody tr.novo { background: var(--novo-bg); }
+tbody tr.novo:hover { background: rgba(255,183,0,0.12); }
+tbody tr.novo td:first-child {
+  border-left: 2px solid var(--novo-bdr);
+}
+
+tbody td { padding: 10px 14px; vertical-align: middle; }
+
+.prog-badge {
+  display: inline-block;
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 3px 9px;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.status-badge {
+  display: inline-block;
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 3px 9px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.tag-novo {
+  display: inline-block;
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--novo-bg);
+  color: var(--novo-txt);
+  border: 1px solid var(--novo-bdr);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.tag-pnab {
+  display: inline-block;
+  font-size: 12px;
+  margin-right: 5px;
+  vertical-align: middle;
+  opacity: .7;
+}
+.proj-name { font-size: 13px; color: var(--white); font-weight: 400; }
+.proj-num { font-size: 10px; color: var(--muted2); margin-top: 2px; font-family: 'Courier New', monospace; }
+.prop-name { font-size: 12px; color: var(--white2); }
+.prop-tipo { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.td-valor { font-size: 12px; color: var(--white2); white-space: nowrap; }
+.td-muni { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.td-data { font-size: 11px; color: var(--muted); white-space: nowrap; font-family: 'Courier New', monospace; }
+
+/* ── PAGINAÇÃO ── */
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--muted);
+}
+.pag-btns { display: flex; gap: 6px; }
+.pag-btn {
+  background: var(--navy3);
+  border: 1px solid var(--border);
+  color: var(--white2);
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+  text-transform: uppercase;
+}
+.pag-btn:hover:not(:disabled) { border-color: var(--border3); background: var(--navy4); }
+.pag-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 64px 20px;
+  color: var(--muted);
+}
+.empty-icon {
+  font-family: var(--cond);
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--navy3);
+  margin-bottom: 16px;
+  letter-spacing: .1em;
+}
+.empty-state p { font-size: 13px; line-height: 2; }
+.empty-state strong { color: var(--white2); font-weight: 500; }
+
+/* ── RESPONSIVIDADE ── */
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="etc-wordmark">
+        <span class="e">E</span><span class="t">T</span><span class="c">C</span>
+        <span style="color:var(--muted);font-weight:300;margin-left:2px">Filmes</span>
+      </div>
+      <div class="brand-divider"></div>
+      <div class="brand-subtitle">ProAC Radar</div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-dot idle" id="liveDot">Dados locais</div>
+      <div class="topbar-meta">
+        <span id="ultimaAtualizacao">Nunca atualizado</span><br>
+        <strong id="totalLeads">—</strong>
+      </div>
+      <button class="btn-atualizar" id="btnAtualizar" onclick="iniciarColeta()">
+        <svg id="iconAtualizar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+          <path d="M21 3v5h-5"/>
+        </svg>
+        Atualizar dados
+      </button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Busca</div>
+      <div class="filter-group">
+        <input type="text" id="busca" placeholder="Projeto, proponente, cidade..." oninput="resetPagina();renderTabela()">
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filtros</div>
+      <div class="filter-group">
+        <label>Tipo de lead</label>
+        <select id="filtTipo" onchange="resetPagina();renderTabela()">
+          <option value="">Audiovisual + PNAB</option>
+          <option value="audiovisual">Só audiovisual</option>
+          <option value="pnab">Só PNAB acessibilidade</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Novidades</label>
+        <select id="filtNovos" onchange="resetPagina();renderTabela()">
+          <option value="">Todos os projetos</option>
+          <option value="novos">Somente novos</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Ano do edital</label>
+        <select id="filtAno" onchange="resetPagina();renderTabela()">
+          <option value="">Todos os anos</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Tipo de proponente</label>
+        <select id="filtPessoa" onchange="resetPagina();renderTabela()">
+          <option value="">PJ + PF</option>
+          <option value="PJ">Pessoa Jurídica</option>
+          <option value="PF">Pessoa Física</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Por programa</div>
+      <div class="prog-tags" id="progTags">
+        <div style="font-size:11px;color:var(--muted2);padding:4px 2px">Atualize os dados para ver</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="log-wrap" id="logWrap"><div id="logLines"></div></div>
+
+    <!-- MÉTRICAS -->
+    <div class="metrics">
+      <div class="metric" style="--metric-color: var(--blue-lt)">
+        <div class="metric-top-line"></div>
+        <div class="metric-label">Total leads</div>
+        <div class="metric-val blue" id="mTotal">—</div>
+      </div>
+      <div class="metric" style="--metric-color: var(--cyan)">
+        <div class="metric-top-line"></div>
+        <div class="metric-label">Audiovisual</div>
+        <div class="metric-val cyan" id="mAv">—</div>
+      </div>
+      <div class="metric" style="--metric-color: #a78bfa">
+        <div class="metric-top-line"></div>
+        <div class="metric-label">PNAB acessib.</div>
+        <div class="metric-val" style="color:#a78bfa" id="mPnab">—</div>
+      </div>
+      <div class="metric" style="--metric-color: var(--novo-txt)">
+        <div class="metric-top-line"></div>
+        <div class="metric-label">Novos</div>
+        <div class="metric-val novo" id="mNovos">—</div>
+      </div>
+      <div class="metric" style="--metric-color: var(--green)">
+        <div class="metric-top-line"></div>
+        <div class="metric-label">Valor total</div>
+        <div class="metric-val green" style="font-size:20px;padding-top:6px" id="mValor">—</div>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Projetos por programa</div>
+        <div style="position:relative;height:200px">
+          <canvas id="chartProg" role="img" aria-label="Distribuição de projetos por programa"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Aprovações por mês</div>
+        <div style="position:relative;height:200px">
+          <canvas id="chartMes" role="img" aria-label="Número de aprovações por mês"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="table-header">
+      <div class="table-count" id="tabelaInfo">—</div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('aprovacao')" id="th-aprovacao">Data aprov.</th>
+              <th onclick="sortBy('programa')" id="th-programa">Programa</th>
+              <th onclick="sortBy('projeto')" id="th-projeto">Projeto</th>
+              <th onclick="sortBy('proponente')" id="th-proponente">Proponente</th>
+              <th onclick="sortBy('municipio')" id="th-municipio">Município</th>
+              <th onclick="sortBy('valor')" id="th-valor">Valor</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyLista"></tbody>
+        </table>
+      </div>
+      <div class="paginacao">
+        <span id="paginfoLabel">—</span>
+        <div class="pag-btns">
+          <button class="pag-btn" id="btnPrev" onclick="pagina(-1)" disabled>← Anterior</button>
+          <button class="pag-btn" id="btnNext" onclick="pagina(1)" disabled>Próxima →</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const PROGRAMAS=["Proac ICMS","Proac Editais","Proac Direto","Proac LAB","Política Nacional Aldir Blanc","Pontos de Cultura"];
+const CORES_PROG={"Proac ICMS":"#1a6ef5","Proac Editais":"#00c9e0","Proac Direto":"#00d68f","Proac LAB":"#ff8c42","Política Nacional Aldir Blanc":"#a78bfa","Pontos de Cultura":"#ff6b9d"};
+const PROG_LABELS={"Proac ICMS":"ICMS","Proac Editais":"Editais","Proac Direto":"Direto","Proac LAB":"LAB","Política Nacional Aldir Blanc":"PNAB","Pontos de Cultura":"Pontos Cult."};
+const SEGMENTOS_AV=["audiovisual","cinema","filme","vídeo","video","animação","animacao","documentário","documentario","ficção","ficcao","série","serie","streaming","multimídia","multimidia"];
+const TERMOS_ACESS=["audiodescrição","audiodescricao","legenda descritiva","legenda closed caption","libras","língua brasileira de sinais","acessibilidade comunicacional"];
+const STATUS_VIGENTES=new Set(["SELECTED","SURROGATE","ICMS_ACCOUNTABILITY_CREATED","CAPEVALUATIONAPPROVEDCHANGESNOTIFIED","CAPEVALUATIONBUDGETREQUESTDRAFT","CAPEVALUATIONCHANGESREQUESTED"]);
+const PROGRAMA_PNAB="Política Nacional Aldir Blanc";
+const BASE="https://fomentocultsp.sp.gov.br/api/publicConsultation";
+const HEADERS={"accept":"application/json","accept-language":"pt-BR,pt;q=0.9","sec-fetch-dest":"empty","sec-fetch-mode":"cors","sec-fetch-site":"same-origin"};
+const POR_PAGINA=30;
+
+let todosLeads=[],idsVistos=new Set(JSON.parse(localStorage.getItem('etc_proac_ids')||'[]'));
+let sortCol='aprovacao',sortAsc=false,paginaAtual=0,filtroProgAtivo='';
+let chartProg=null,chartMes=null;
+
+function stripHtml(s){return String(s||'').replace(/<[^>]+>/g,' ').toLowerCase();}
+function isAudiovisual(p){const s=p.submission||{},n=p.notice||{};const t=[(s.categories||[]).join(' '),n.title||'',n.moduleName||''].join(' ').toLowerCase();return SEGMENTOS_AV.some(x=>t.includes(x));}
+function getAcess(p){const ts=new Set();for(const q of(p.questionsAnswers||[])){const c=stripHtml((q.value||{}).data||'');for(const t of TERMOS_ACESS)if(c.includes(t))ts.add(t);}return ts.size>0?[...ts].join(', '):null;}
+function formatDate(s){if(!s)return'—';try{return new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return s.substring(0,10);}}
+function formatValor(v){if(!v)return'—';return'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+
+function log(msg,tipo='prog'){const el=document.getElementById('logLines'),w=document.getElementById('logWrap');w.classList.add('visible');const d=document.createElement('div');d.className='log-line '+tipo;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+function clearLog(){document.getElementById('logLines').innerHTML='';document.getElementById('logWrap').classList.remove('visible');}
+function setProgress(p){document.getElementById('progressFill').style.width=p+'%';}
+
+async function fetchProg(prog){
+  const r=await fetch(`${BASE}?page=1&regsPerPage=100&noticeProgram=${encodeURIComponent(prog)}`,{headers:HEADERS});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const j=await r.json(),inner=j.DATA||{},lista=inner.list||[];
+  const pages=Math.max(1,Math.ceil((inner.count||lista.length)/100));
+  const todos=[...lista];
+  for(let pg=2;pg<=pages;pg++){const r2=await fetch(`${BASE}?page=${pg}&regsPerPage=100&noticeProgram=${encodeURIComponent(prog)}`,{headers:HEADERS});const j2=await r2.json();todos.push(...((j2.DATA||{}).list||[]));await new Promise(r=>setTimeout(r,300));}
+  return todos;
+}
+
+async function iniciarColeta(){
+  const btn=document.getElementById('btnAtualizar'),icon=document.getElementById('iconAtualizar'),dot=document.getElementById('liveDot');
+  btn.disabled=true;icon.classList.add('spin');dot.className='live-dot';dot.textContent='Buscando...';
+  clearLog();setProgress(2);todosLeads=[];const novosIds=new Set();
+  try{
+    for(let i=0;i<PROGRAMAS.length;i++){
+      const prog=PROGRAMAS[i];setProgress(5+Math.round(i/PROGRAMAS.length*88));
+      log('Buscando '+prog+'...');
+      let todos=[];try{todos=await fetchProg(prog);}catch(e){log('  Erro: '+e.message,'err');continue;}
+      let cnt=0;
+      for(const p of todos){
+        if(!STATUS_VIGENTES.has(p.status))continue;
+        const pid=p._id||'',ehNovo=pid&&!idsVistos.has(pid);
+        if(pid)novosIds.add(pid);
+        if(prog===PROGRAMA_PNAB){const a=getAcess(p);if(a){todosLeads.push(norm(p,prog,'pnab',ehNovo,a));cnt++;}}
+        else if(isAudiovisual(p)){todosLeads.push(norm(p,prog,'audiovisual',ehNovo,null));cnt++;}
+      }
+      log('  '+PROG_LABELS[prog]+': '+todos.length+' total → '+cnt+' leads','ok');
+    }
+    idsVistos=new Set([...idsVistos,...novosIds]);
+    localStorage.setItem('etc_proac_ids',JSON.stringify([...idsVistos]));
+    const agora=new Date().toLocaleString('pt-BR');
+    document.getElementById('ultimaAtualizacao').textContent='Atualizado '+agora;
+    localStorage.setItem('etc_ultima',agora);
+    log('Concluído! '+todosLeads.length+' leads.','ok');
+    dot.className='live-dot';dot.textContent='Dados atuais';
+    setProgress(100);
+    atualizarMetrics();popularFiltroAno();renderProgTags();renderCharts();resetPagina();renderTabela();
+    setTimeout(clearLog,3500);
+  }catch(e){log('Erro: '+e.message,'err');dot.className='live-dot idle';dot.textContent='Erro';}
+  finally{setProgress(0);btn.disabled=false;icon.classList.remove('spin');}
+}
+
+function norm(p,prog,tipo,ehNovo,acessInfo){
+  const s=p.submission||{},n=p.notice||{},cats=s.categories||[];
+  return{id:p._id||'',novo:ehNovo,tipo,aprovacao:p.updatedAt||p.createdAt||'',programa:prog,projeto:s.name||'',inscricao:s.number||'',proponente:p.proponentName||'',tipoPessoa:p.personType==='LegalPerson'?'PJ':'PF',segmento:cats.length?cats.join(', '):(n.title||''),anoEdital:String(n.year||''),status:p.status||'',valor:p.projectValue||0,municipio:(p.proponentCity||'').replace(/-city$/i,'').trim(),acessInfo:acessInfo||''};
+}
+
+function atualizarMetrics(){
+  const avs=todosLeads.filter(l=>l.tipo==='audiovisual'),pnabs=todosLeads.filter(l=>l.tipo==='pnab'),novos=todosLeads.filter(l=>l.novo),vt=todosLeads.reduce((s,l)=>s+l.valor,0);
+  document.getElementById('mTotal').textContent=todosLeads.length.toLocaleString('pt-BR');
+  document.getElementById('mAv').textContent=avs.length.toLocaleString('pt-BR');
+  document.getElementById('mPnab').textContent=pnabs.length.toLocaleString('pt-BR');
+  document.getElementById('mNovos').textContent=novos.length.toLocaleString('pt-BR');
+  document.getElementById('mValor').textContent='R$\u00a0'+(vt/1e6).toFixed(1).replace('.',',')+'M';
+  document.getElementById('totalLeads').textContent=todosLeads.length+' projetos carregados';
+}
+
+function popularFiltroAno(){
+  const anos=[...new Set(todosLeads.map(l=>l.anoEdital).filter(Boolean))].sort().reverse();
+  document.getElementById('filtAno').innerHTML='<option value="">Todos os anos</option>'+anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+}
+
+function renderProgTags(){
+  const cont={};for(const l of todosLeads)cont[l.programa]=(cont[l.programa]||0)+1;
+  document.getElementById('progTags').innerHTML=PROGRAMAS.filter(p=>cont[p]).map(p=>`
+    <div class="prog-tag ${filtroProgAtivo===p?'active':''}" onclick="toggleProg('${p.replace(/'/g,"\\'")}')">
+      <div class="prog-left"><div class="prog-dot" style="background:${CORES_PROG[p]}"></div><span>${PROG_LABELS[p]||p}</span></div>
+      <span class="prog-count">${cont[p]||0}</span>
+    </div>`).join('');
+}
+
+function toggleProg(p){filtroProgAtivo=filtroProgAtivo===p?'':p;resetPagina();renderProgTags();renderTabela();}
+
+function renderCharts(){
+  const cp={};for(const l of todosLeads)cp[l.programa]=(cp[l.programa]||0)+1;
+  const progs=Object.keys(cp).sort((a,b)=>cp[b]-cp[a]);
+  if(chartProg)chartProg.destroy();
+  chartProg=new Chart(document.getElementById('chartProg'),{type:'bar',data:{labels:progs.map(p=>PROG_LABELS[p]||p),datasets:[{data:progs.map(p=>cp[p]),backgroundColor:progs.map(p=>CORES_PROG[p]||'#4a5568'),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b7fa3',font:{size:10}}},y:{grid:{display:false},ticks:{color:'#8899bb',font:{size:10}}}}}});
+
+  const cm={};for(const l of todosLeads){if(!l.aprovacao)continue;const m=l.aprovacao.substring(0,7);cm[m]=(cm[m]||0)+1;}
+  const meses=Object.keys(cm).sort().slice(-14);
+  const MP=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const lbs=meses.map(m=>{const[y,mo]=m.split('-');return MP[parseInt(mo)-1]+'/'+y.slice(2);});
+  if(chartMes)chartMes.destroy();
+  chartMes=new Chart(document.getElementById('chartMes'),{type:'bar',data:{labels:lbs,datasets:[{data:meses.map(m=>cm[m]),backgroundColor:'#1a6ef5',borderRadius:3,borderSkipped:false,hoverBackgroundColor:'#00c9e0'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa3',font:{size:9},maxRotation:45,autoSkip:false}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#6b7fa3',font:{size:10}}}}}});
+}
+
+function getFiltrados(){
+  const busca=(document.getElementById('busca').value||'').toLowerCase();
+  const ftipo=document.getElementById('filtTipo').value,fnovos=document.getElementById('filtNovos').value,fano=document.getElementById('filtAno').value,fpessoa=document.getElementById('filtPessoa').value;
+  let l=[...todosLeads];
+  if(filtroProgAtivo)l=l.filter(x=>x.programa===filtroProgAtivo);
+  if(busca)l=l.filter(x=>x.projeto.toLowerCase().includes(busca)||x.proponente.toLowerCase().includes(busca)||x.municipio.toLowerCase().includes(busca)||x.segmento.toLowerCase().includes(busca)||x.inscricao.toLowerCase().includes(busca));
+  if(ftipo==='audiovisual')l=l.filter(x=>x.tipo==='audiovisual');
+  if(ftipo==='pnab')l=l.filter(x=>x.tipo==='pnab');
+  if(fnovos==='novos')l=l.filter(x=>x.novo);
+  if(fano)l=l.filter(x=>x.anoEdital===fano);
+  if(fpessoa)l=l.filter(x=>x.tipoPessoa===fpessoa);
+  l.sort((a,b)=>{let va,vb;if(sortCol==='valor'){va=a.valor;vb=b.valor;}else if(sortCol==='projeto'){va=a.projeto;vb=b.projeto;}else if(sortCol==='proponente'){va=a.proponente;vb=b.proponente;}else if(sortCol==='municipio'){va=a.municipio;vb=b.municipio;}else if(sortCol==='programa'){va=a.programa;vb=b.programa;}else{va=a.aprovacao;vb=b.aprovacao;}if(va<vb)return sortAsc?-1:1;if(va>vb)return sortAsc?1:-1;return 0;});
+  return l;
+}
+
+function renderTabela(){
+  const lista=getFiltrados(),inicio=paginaAtual*POR_PAGINA,fatia=lista.slice(inicio,inicio+POR_PAGINA);
+  const tbody=document.getElementById('tbodyLista');
+  if(todosLeads.length===0){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">ETC</div><p>Nenhum dado carregado ainda.<br>Clique em <strong>Atualizar dados</strong> para buscar os projetos da API.</p></div></td></tr>`;
+    ['paginfoLabel','tabelaInfo'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('btnPrev').disabled=document.getElementById('btnNext').disabled=true;
+    return;
+  }
+  if(lista.length===0){
+    tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state"><p>Nenhum projeto encontrado com os filtros selecionados.</p></div></td></tr>`;
+    document.getElementById('tabelaInfo').innerHTML='<strong>0</strong> projetos';
+    document.getElementById('paginfoLabel').textContent='0 projetos';
+    document.getElementById('btnPrev').disabled=document.getElementById('btnNext').disabled=true;
+    return;
+  }
+  tbody.innerHTML=fatia.map(l=>{
+    const cor=CORES_PROG[l.programa]||'#4a5568',label=PROG_LABELS[l.programa]||l.programa;
+    const sl={SELECTED:{t:'Aprovado',c:'#00d68f'},SURROGATE:{t:'Suplente',c:'#ffb700'},ICMS_ACCOUNTABILITY_CREATED:{t:'Prest. Contas',c:'#6b7fa3'}}[l.status]||{t:l.status,c:'#6b7fa3'};
+    const novoTag=l.novo?`<span class="tag-novo">novo</span>`:'';
+    const pnabTag=l.tipo==='pnab'?`<span class="tag-pnab" title="${l.acessInfo}">♿</span>`:'';
+    return `<tr class="${l.novo?'novo':''}">
+      <td class="td-data">${formatDate(l.aprovacao)}</td>
+      <td><span class="prog-badge" style="background:${cor}20;color:${cor};border:1px solid ${cor}40">${label}</span></td>
+      <td style="max-width:230px">${novoTag}${pnabTag}<div class="proj-name">${l.projeto}</div><div class="proj-num">${l.inscricao}</div></td>
+      <td style="max-width:180px"><div class="prop-name">${l.proponente}</div><div class="prop-tipo">${l.tipoPessoa}</div></td>
+      <td class="td-muni">${l.municipio}</td>
+      <td class="td-valor">${formatValor(l.valor)}</td>
+      <td><span class="status-badge" style="background:${sl.c}18;color:${sl.c};border:1px solid ${sl.c}40">${sl.t}</span></td>
+    </tr>`;
+  }).join('');
+  const total=lista.length,fim=Math.min(inicio+POR_PAGINA,total);
+  document.getElementById('paginfoLabel').textContent=`${inicio+1}–${fim} de ${total.toLocaleString('pt-BR')}`;
+  document.getElementById('tabelaInfo').innerHTML=`<strong>${total.toLocaleString('pt-BR')}</strong> projetos encontrados`;
+  document.getElementById('btnPrev').disabled=paginaAtual===0;
+  document.getElementById('btnNext').disabled=fim>=total;
+  document.querySelectorAll('thead th').forEach(th=>{th.classList.toggle('sorted',th.id.replace('th-','')===sortCol);});
+}
+
+function pagina(dir){paginaAtual+=dir;renderTabela();document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth',block:'start'});}
+function resetPagina(){paginaAtual=0;}
+function sortBy(col){sortCol===col?sortAsc=!sortAsc:(sortCol=col,sortAsc=false);resetPagina();renderTabela();}
+
+const ul=localStorage.getItem('etc_ultima');
+if(ul){document.getElementById('ultimaAtualizacao').textContent='Atualizado '+ul;document.getElementById('liveDot').className='live-dot idle';document.getElementById('liveDot').textContent='Dados locais';}
+renderTabela();
+</script>
+</body>
+</html>
