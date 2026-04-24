@@ -1300,11 +1300,32 @@ async function buscarDetalhesProj(lead) {
       return (item.value?.data || '').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
     }
 
-    const resumo       = getQA('resumo');
-    const descricao    = getQA('descrição') || getQA('descricao');
-    const objetivos    = getQA('objetivo');
-    const contrapartida= getQA('contrapartida');
-    const outrasInfo   = getQA('outras informações') || getQA('outras informacoes');
+    // Mapeamento flexível — pega o primeiro campo que contenha qualquer dos termos
+    function getQAAny(...termos) {
+      for (const t of termos) {
+        const val = getQA(t);
+        if (val && val.length > 10) return val;
+      }
+      return '';
+    }
+
+    const resumo       = getQAAny('resumo', 'apresentação resumida', 'apresentacao resumida', 'sinopse', 'sumário');
+    const descricao    = getQAAny('descrição', 'descricao', 'proposta detalhada', 'plano de', 'detalhamento', 'memorial');
+    const objetivos    = getQAAny('objetivo', 'finalidade', 'propósito');
+    const contrapartida= getQAAny('contrapartida');
+    const outrasInfo   = getQAAny('outras informações', 'outras informacoes', 'informações adicionais', 'observações');
+
+    // Se ainda não pegou nada, pega todos os campos disponíveis
+    const camposExtras = [];
+    if (!resumo && !descricao) {
+      for (const item of qa) {
+        const nome = item.question?.name || '';
+        const val = (item.value?.data || '').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+        if (val && val.length > 10 && item.value?.type === 'RICHTEXT') {
+          camposExtras.push({ titulo: nome.replace(/[:\t]+$/,'').trim(), conteudo: val });
+        }
+      }
+    }
 
     const dtInicio = sub.expectedStart ? new Date(sub.expectedStart).toLocaleDateString('pt-BR') : '';
     const dtFim    = sub.expectedEnd   ? new Date(sub.expectedEnd).toLocaleDateString('pt-BR')   : '';
@@ -1336,13 +1357,18 @@ async function buscarDetalhesProj(lead) {
     }
 
     // Montar seções ricas no modal
-    const secoes = [
+    let secoes = [
       { titulo: 'Resumo',         conteudo: resumo },
       { titulo: 'Descrição',      conteudo: descricao },
       { titulo: 'Objetivos',      conteudo: objetivos },
       { titulo: 'Contrapartida',  conteudo: contrapartida },
       { titulo: 'Outras info.',   conteudo: outrasInfo },
     ].filter(s => s.conteudo && s.conteudo.length > 10);
+
+    // Fallback: usa todos os campos RICHTEXT disponíveis
+    if (secoes.length === 0 && camposExtras.length > 0) {
+      secoes = camposExtras;
+    }
 
     if (secoes.length > 0 || locaisTexto) {
       const descBloco = document.getElementById('pmDescBloco');
