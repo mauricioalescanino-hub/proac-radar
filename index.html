@@ -1429,35 +1429,41 @@ async function gerarPitch() {
   const lead = projAtual;
   const det  = projAtual._detalhes || {};
 
-  const prompt = `Você é um especialista em vendas B2B da ETC Filmes, empresa especializada em acessibilidade audiovisual:
-- Libras: tradução/interpretação em Língua Brasileira de Sinais para vídeos, lives e eventos
-- Legendas: closed caption (CC), legendas descritivas (SDH), legendas para surdos e ensurdecidos
-- Audiodescrição (AD): narração descritiva para pessoas com deficiência visual em filmes, vídeos e eventos
+  const prompt = `Você é o time comercial da ETC Filmes — empresa com 21 anos de mercado audiovisual, pioneira em acessibilidade no Brasil (Libras, Legendas/CC e Audiodescrição) e com certificação TPN de proteção de dados. O lema interno é "Manda pra cá que a gente resolve."
 
----
-DADOS DO PROJETO:
+SOBRE A ETC FILMES:
+- 21 anos de mercado, pioneiros em acessibilidade audiovisual no Brasil
+- Serviços: Libras (tradução/interpretação em LSB), Legendas (CC, SDH, descritiva), Audiodescrição (AD)
+- Certificação TPN (Trusted Partner Network) — padrão internacional de segurança de conteúdo
+- Referência para produtoras, distribuidoras, plataformas e projetos culturais
+
+PROJETO PROSPECTADO:
 Nome: ${lead.projeto}
-Proponente: ${lead.proponente} (${lead.tipoPessoa === 'PJ' ? 'PJ' : 'PF'})
+Proponente: ${lead.proponente}
 Município: ${lead.municipio}
-Programa: ${PROG_LABELS[lead.programa] || lead.programa} | Valor: ${formatValor(lead.valor)}
+Segmento: ${lead.segmento}
 ${det.dtInicio && det.dtFim ? `Período: ${det.dtInicio} → ${det.dtFim}` : ''}
-${lead.acessInfo ? `Acessibilidade já mencionada no projeto: ${lead.acessInfo}` : ''}
-${det.resumo    ? `\nRESUMO: ${det.resumo.substring(0,500)}`       : ''}
-${det.objetivos ? `\nOBJETIVOS: ${det.objetivos.substring(0,400)}` : ''}
-${det.descricao ? `\nDESCRIÇÃO: ${det.descricao.substring(0,500)}` : ''}
-${det.contrapartida ? `\nCONTRAPARTIDA: ${det.contrapartida.substring(0,300)}` : ''}
-${det.locaisTexto   ? `\nLOCAIS: ${det.locaisTexto}`               : ''}
+${lead.acessInfo ? `Acessibilidade mencionada no projeto: ${lead.acessInfo}` : ''}
+${det.resumo    ? `\nRESUMO: ${det.resumo.substring(0,400)}`       : ''}
+${det.descricao ? `\nDESCRIÇÃO: ${det.descricao.substring(0,400)}` : ''}
+${det.objetivos ? `\nOBJETIVOS: ${det.objetivos.substring(0,300)}` : ''}
+${det.locaisTexto ? `\nLOCAIS: ${det.locaisTexto}`                 : ''}
 
 ---
-Crie um pitch de primeiro contato (email ou mensagem) em português brasileiro.
-REGRAS:
-1. Comece mencionando algo específico do projeto — nome, tipo de ação, público, local — que prove que você leu
-2. Conecte os serviços da ETC Filmes às necessidades REAIS deste projeto
-3. Cite a obrigação legal de acessibilidade em projetos com fomento público (Lei Brasileira de Inclusão, Art. 42 e 67)
-4. Se o projeto já menciona acessibilidade, elogie e ofereça expertise para executar com qualidade
-5. Máximo 4 parágrafos curtos + 1 CTA direta
-6. Tom: profissional e próximo, nunca genérico ou robótico
-7. NÃO use "Prezado(a)" ou saudação genérica — vá direto ao ponto`;
+TAREFA:
+Escreva uma mensagem de primeiro contato comercial — pode ser email ou mensagem direta.
+
+DIRETRIZES:
+1. Tom: confiante, direto e humano — como quem conhece o mercado de cor
+2. Mostre que conhece o projeto (mencione algo específico — nome, tipo de ação, público ou local)
+3. Posicione a ETC como parceira natural para esse tipo de projeto — sem citar obrigações legais ou valor do fomento
+4. Destaque 1 ou 2 diferenciais da ETC que fazem sentido para ESTE projeto (ex: se é um filme, fale da certificação TPN; se é evento/exposição, fale da experiência com projetos culturais)
+5. Seja curto: máximo 4 parágrafos — cada um com no máximo 3 linhas
+6. Termine com uma CTA leve que convide para uma conversa, não para fechar negócio
+7. NÃO mencione ProAC, fomento, valor aprovado ou obrigação de acessibilidade
+8. NÃO use "Prezado(a)" — comece direto, com algo que mostre que você leu o projeto`;
+
+
 
   try {
     const resp = await fetch(ANTHROPIC_PROXY, {
