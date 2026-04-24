@@ -924,7 +924,7 @@ async function saveCRM(id, dados) {
       obs: d.obs || '',
       moskit_id: d.moskitId || '',
       updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    }, { onConflict: 'id', ignoreDuplicates: false });
     if (error) console.warn('Supabase CRM save error:', error.message);
   } catch(e) {
     console.warn('Supabase save failed:', e.message);
@@ -934,24 +934,31 @@ async function saveCRM(id, dados) {
 async function salvarLeadsSupabase(leads) {
   if (!leads || leads.length === 0) return;
   try {
-    const rows = leads.map(l => ({
-      id: l.id,
-      novo: l.novo,
-      tipo: l.tipo,
-      aprovacao: l.aprovacao || null,
-      programa: l.programa,
-      projeto: l.projeto,
-      inscricao: l.inscricao,
-      proponente: l.proponente,
-      tipo_pessoa: l.tipoPessoa,
-      segmento: l.segmento,
-      ano_edital: l.anoEdital,
-      status: l.status,
-      valor: l.valor || 0,
-      municipio: l.municipio,
-      acess_info: l.acessInfo || '',
-      updated_at: new Date().toISOString()
-    }));
+    // Deduplica por id antes de enviar (evita "ON CONFLICT affect row a second time")
+    const vistos = new Set();
+    const rows = [];
+    for (const l of leads) {
+      if (!l.id || vistos.has(l.id)) continue;
+      vistos.add(l.id);
+      rows.push({
+        id: l.id,
+        novo: l.novo,
+        tipo: l.tipo,
+        aprovacao: l.aprovacao || null,
+        programa: l.programa,
+        projeto: l.projeto,
+        inscricao: l.inscricao,
+        proponente: l.proponente,
+        tipo_pessoa: l.tipoPessoa,
+        segmento: l.segmento,
+        ano_edital: l.anoEdital,
+        status: l.status,
+        valor: l.valor || 0,
+        municipio: l.municipio,
+        acess_info: l.acessInfo || '',
+        updated_at: new Date().toISOString()
+      });
+    }
     // Upsert em lotes de 200
     for (let i = 0; i < rows.length; i += 200) {
       const { error } = await supa.from('proac_leads').upsert(rows.slice(i, i+200), { onConflict: 'id' });
