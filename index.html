@@ -1284,7 +1284,8 @@ function abrirProjModal(id) {
 
 async function buscarDetalhesProj(lead) {
   try {
-    const r = await fetch(`${BASE}/${lead.id}`, {headers: HEADERS});
+    const url = `https://etc-filmes-proxy.vercel.app/api/proac?id=${lead.id}`;
+    const r = await fetch(url);
     if (!r.ok) return;
     const j = await r.json();
     const data = j.DATA || j;
