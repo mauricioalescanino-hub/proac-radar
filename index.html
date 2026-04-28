@@ -310,8 +310,8 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
 .source-tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
 
 /* ── MINC SECTION ── */
-#mincSection { display:none; }
-#proacSection { display:block; }
+#mincSection { display:none; grid-column: 1 / -1; width: 100%; min-height: calc(100vh - 56px); background: var(--bg); }
+#proacSection { display:block; contents; }
 
 .minc-header-bar {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -783,10 +783,10 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
     </div>
   </main>
   </div><!-- fim #proacSection -->
-</div>
+</div><!-- fim .layout -->
 
 <!-- ── SEÇÃO MINC ── -->
-<div id="mincSection" style="display:none">
+<div id="mincSection" style="display:none;position:fixed;inset:56px 0 0 0;overflow-y:auto;background:var(--bg);z-index:10">
   <div style="padding:20px 24px;max-width:1400px;margin:0 auto">
 
     <div class="minc-header-bar">
