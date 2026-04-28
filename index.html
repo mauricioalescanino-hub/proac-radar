@@ -1063,7 +1063,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
     <div class="minc-filters">
       <select class="minc-filter-select" id="fsaAnoMin" onchange="renderFsa()">
         <option value="">Todos os anos</option>
-        <option value="2020">2020+</option>
+        <option value="2020" selected>2020+</option>
         <option value="2021">2021+</option>
         <option value="2022">2022+</option>
         <option value="2023">2023+</option>
@@ -3007,6 +3007,17 @@ function getFsaFiltrados() {
 function renderFsa() {
   if (!fsaCarregado) return;
   const filtrados  = getFsaFiltrados();
+
+  // Ordena por data_contrato decrescente (mais recentes primeiro)
+  filtrados.sort((a, b) => {
+    const toDate = s => {
+      if (!s) return 0;
+      const [d, m, y] = s.split('/');
+      return new Date(`${y}-${m}-${d}`).getTime() || 0;
+    };
+    return toDate(b.data_contrato) - toDate(a.data_contrato);
+  });
+
   const total      = filtrados.length;
   const totalPags  = Math.ceil(total / FSA_POR_PAG);
   if (fsaPag >= totalPags) fsaPag = Math.max(0, totalPags - 1);
