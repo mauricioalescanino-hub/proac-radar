@@ -1358,6 +1358,7 @@ async function carregarCRMSupabase() {
         proximoPasso: row.proximo_passo || '',
         obs: row.obs || '',
         moskitId: row.moskit_id || '',
+        tipoServico: row.tipo_servico || '',
         updatedAt: row.updated_at || ''
       };
     }
@@ -1388,6 +1389,7 @@ async function saveCRM(id, dados) {
       proximo_passo: d.proximoPasso || '',
       obs: d.obs || '',
       moskit_id: d.moskitId || '',
+      tipo_servico: d.tipoServico || '',
       updated_at: new Date().toISOString()
     }, { onConflict: 'id', ignoreDuplicates: false });
     if (error) console.warn('Supabase CRM save error:', error.message);
@@ -1453,33 +1455,113 @@ function renderRespSelect(resp, onchangeJs) {
   </select>`;
 }
 
-// Detecta se o serviço de acessibilidade será ao vivo, gravado ou ambos
-// baseado em segmento, tipologia e nome do projeto
-function tipoServico(textos) {
-  const txt = textos.filter(Boolean).join(' ').toLowerCase();
+const TIPO_SERVICO_MAP = {
+  'vivo':    { icon: '🎭', title: 'Ao vivo — intérprete presencial' },
+  'gravado': { icon: '🎬', title: 'Gravado — pós-produção' },
+  'ambos':   { icon: '🎭🎬', title: 'Ao vivo + Gravado' },
+  '':        { icon: '❓', title: 'Indefinido — clique para definir' },
+};
 
+function tipoServicoDetectado(textos) {
+  const txt = textos.filter(Boolean).join(' ').toLowerCase();
   const AO_VIVO = ['apresentação','espetáculo','espetaculo','show','concerto','performance',
     'teatro','dança','danca','ópera','opera','circo','musical','recital','sarau',
     'festival','evento','mostra','temporada','turnê','turne','ao vivo','live'];
-
   const GRAVADO = ['audiovisual','cinema','filme','longa','curta','série','serie',
     'documentário','documentario','animação','animacao','fonográfico','fonografico',
-    'gravação','gravacao','produção audiovisual','producao audiovisual',
-    'comercialização','comercializacao','streaming','vídeo','video','fsa','prodecine','prodav'];
-
-  const isVivo   = AO_VIVO.some(t => txt.includes(t));
+    'gravação','gravacao','produção audiovisual','comercialização','streaming','vídeo','video'];
+  const isVivo    = AO_VIVO.some(t => txt.includes(t));
   const isGravado = GRAVADO.some(t => txt.includes(t));
-
-  if (isVivo && isGravado) return { icon: '🎭🎬', title: 'Ao vivo + Gravado', tipo: 'ambos' };
-  if (isVivo)              return { icon: '🎭',    title: 'Ao vivo — intérprete presencial', tipo: 'vivo' };
-  if (isGravado)           return { icon: '🎬',    title: 'Gravado — pós-produção', tipo: 'gravado' };
-  return null;
+  if (isVivo && isGravado) return 'ambos';
+  if (isVivo)              return 'vivo';
+  if (isGravado)           return 'gravado';
+  return '';
 }
 
-function renderTipoIcon(textos) {
-  const t = tipoServico(textos);
-  if (!t) return '';
-  return `<span title="${t.title}" style="font-size:13px;margin-right:4px;vertical-align:middle;cursor:help">${t.icon}</span>`;
+// fonte: 'proac' | 'salic' | 'minc' | 'federal' | 'fsa'
+// idEsc: id já escapado para uso inline
+function renderTipoIconClicavel(idLead, textos, tipoSalvo, fonte) {
+  const tipo = tipoSalvo || tipoServicoDetectado(textos);
+  const { icon, title } = TIPO_SERVICO_MAP[tipo] || TIPO_SERVICO_MAP[''];
+  const idEsc = String(idLead).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return `<span
+    onclick="abrirTipoServicoPopup('${idEsc}','${fonte}',event)"
+    title="${title} — clique para editar"
+    style="font-size:13px;margin-right:4px;vertical-align:middle;cursor:pointer;opacity:${tipo?'1':'0.35'}"
+  >${icon}</span>`;
+}
+
+// Popup inline leve para editar o tipo de serviço
+function abrirTipoServicoPopup(id, fonte, event) {
+  event.stopPropagation();
+  // Remove popup anterior se existir
+  document.getElementById('tipoServicoPopup')?.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'tipoServicoPopup';
+  popup.style.cssText = `position:fixed;z-index:9999;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;box-shadow:var(--shadow-md);padding:10px;display:flex;flex-direction:column;gap:4px;min-width:220px`;
+
+  const x = Math.min(event.clientX, window.innerWidth - 240);
+  const y = Math.min(event.clientY + 8, window.innerHeight - 160);
+  popup.style.left = x + 'px';
+  popup.style.top  = y + 'px';
+
+  const opcoes = [
+    { val: 'vivo',    label: '🎭 Ao vivo — intérprete presencial' },
+    { val: 'gravado', label: '🎬 Gravado — pós-produção' },
+    { val: 'ambos',   label: '🎭🎬 Ao vivo + Gravado' },
+    { val: '',        label: '❓ Indefinido' },
+  ];
+
+  const titulo = document.createElement('div');
+  titulo.style.cssText = 'font-family:var(--cond);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text4);padding:2px 4px 6px';
+  titulo.textContent = 'Tipo de serviço';
+  popup.appendChild(titulo);
+
+  opcoes.forEach(({ val, label }) => {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.style.cssText = 'text-align:left;background:none;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;font-family:var(--sans);font-size:12px;color:var(--text2);width:100%';
+    btn.onmouseover = () => btn.style.background = 'var(--bg3)';
+    btn.onmouseout  = () => btn.style.background = 'none';
+    btn.onclick = () => {
+      salvarTipoServico(id, fonte, val);
+      popup.remove();
+    };
+    popup.appendChild(btn);
+  });
+
+  document.body.appendChild(popup);
+  setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 50);
+}
+
+async function salvarTipoServico(id, fonte, tipo) {
+  // Atualiza em memória e salva no Supabase correto
+  const tabelas = {
+    proac:   { obj: crmData,   table: 'proac_crm',     col: 'tipo_servico' },
+    salic:   { obj: salicCRM,  table: 'salic_leads',   col: 'tipo_servico' },
+    minc:    { obj: mincCRM,   table: 'minc_leads',    col: 'tipo_servico' },
+    federal: { obj: fedCRM,    table: 'federal_leads', col: 'tipo_servico' },
+    fsa:     { obj: fsaCRM,    table: 'fsa_leads',     col: 'tipo_servico' },
+  };
+  const cfg = tabelas[fonte];
+  if (!cfg) return;
+  if (!cfg.obj[id]) cfg.obj[id] = { status: 'nao', responsavel: '', tipoServico: '' };
+  cfg.obj[id].tipoServico = tipo;
+
+  try {
+    await supa.from(cfg.table).upsert(
+      { id, [cfg.col]: tipo, updated_at: new Date().toISOString() },
+      { onConflict: 'id' }
+    );
+  } catch(e) { console.warn('Tipo serviço save:', e.message); }
+
+  // Re-renderiza a aba ativa
+  if (fonte === 'proac')   renderTabela();
+  if (fonte === 'salic')   renderSalic();
+  if (fonte === 'minc')    renderMinc();
+  if (fonte === 'federal') renderFederal();
+  if (fonte === 'fsa')     renderFsa();
 }
 
 function log(msg,tipo='prog'){const el=document.getElementById('logLines'),w=document.getElementById('logWrap');w.classList.add('visible');const d=document.createElement('div');d.className='log-line '+tipo;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
@@ -1655,7 +1737,7 @@ function renderTabela(){
       <td><span class="prog-badge" style="background:${cor}18;color:${cor};border:1px solid ${cor}35">${label}</span></td>
       <td style="max-width:240px">
         ${novoTag}${festTag}${pnabTag}
-        <div class="proj-name" style="cursor:pointer;color:var(--blue)" onclick="abrirProjModal('${l.id}')">${renderTipoIcon([l.segmento, l.programa, l.projeto])}${l.projeto}</div>
+        <div class="proj-name" style="cursor:pointer;color:var(--blue)" onclick="abrirProjModal('${l.id}')">${renderTipoIconClicavel(l.id,[l.segmento,l.programa,l.projeto],crm.tipoServico,'proac')}${l.projeto}</div>
         <div class="proj-num">${l.inscricao}</div>
         <div class="prop-name" style="margin-top:3px">${l.proponente}</div>
         <div class="prop-tipo">${l.tipoPessoa} · ${l.municipio}</div>
@@ -2230,9 +2312,9 @@ function inicializarSalic() {
 
 async function carregarSalicCRM() {
   try {
-    const { data } = await supa.from('salic_leads').select('id,status_crm,responsavel');
+    const { data } = await supa.from('salic_leads').select('id,status_crm,responsavel,tipo_servico');
     salicCRM = {};
-    for (const r of (data || [])) salicCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '' };
+    for (const r of (data || [])) salicCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', tipoServico: r.tipo_servico || '' };
   } catch(e) { console.warn('SALIC CRM:', e.message); }
 }
 
@@ -2243,6 +2325,7 @@ async function atualizarSalicCRM(id, nome, proponente, valor, uf, segmento, camp
     await supa.from('salic_leads').upsert({
       id, nome, proponente, valor: valor||0, uf, segmento,
       status_crm: salicCRM[id].status, responsavel: salicCRM[id].responsavel || '',
+      tipo_servico: salicCRM[id].tipoServico || '',
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
   } catch(e) { console.warn('SALIC CRM save:', e.message); }
@@ -2364,7 +2447,7 @@ function renderSalic() {
     return `<tr>
       <td style="color:var(--text4);font-family:var(--cond)">${salicOffset+i+1}</td>
       <td style="max-width:280px">
-        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchSalic('${p.PRONAC}')">${renderTipoIcon([p.segmento, p.tipologia, p.nome])}${p.nome}</div>
+        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchSalic('${p.PRONAC}')">${renderTipoIconClicavel(p.PRONAC,[p.segmento,p.tipologia,p.nome],crm.tipoServico,'salic')}${p.nome}</div>
         <div class="minc-empresa">${p.proponente||''} · ${p.cgccpf||''}</div>
         <div style="font-size:10px;color:var(--text4)">${p.tipologia||''}</div>
       </td>
@@ -2533,11 +2616,11 @@ async function inicializarFederal() {
 
 async function carregarFederalCRM() {
   try {
-    const { data, error } = await supa.from('federal_leads').select('id,status_crm,responsavel,obs');
+    const { data, error } = await supa.from('federal_leads').select('id,status_crm,responsavel,obs,tipo_servico');
     if (error) throw error;
     fedCRM = {};
     for (const r of (data || [])) {
-      fedCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '' };
+      fedCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '', tipoServico: r.tipo_servico || '' };
     }
     if (!data || data.length === 0) await sincronizarFederalSupabase();
     renderFederal();
@@ -2626,7 +2709,7 @@ function renderFederal() {
       <td style="color:var(--text4);font-family:var(--cond)">${fedPag*FED_POR_PAG+i+1}</td>
       <td style="max-width:320px">
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">${srcBadge}${priBadge}${metaBadge}</div>
-        <div class="minc-obra">${renderTipoIcon([l.obj, l.tip])}${l.p}</div>
+        <div class="minc-obra">${renderTipoIconClicavel(l.id,[l.obj,l.tip],crm.tipoServico,'federal')}${l.p}</div>
         <div class="minc-empresa" style="font-size:10px">${l.cnpj || ''} · ${l.tip || ''}</div>
         ${l.obj ? `<div style="font-size:11px;color:var(--text4);margin-top:3px;line-height:1.4;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.obj}</div>` : ''}
       </td>
@@ -2772,11 +2855,11 @@ function inicializarMinc() {
 
 async function carregarMincCRM() {
   try {
-    const { data, error } = await supa.from('minc_leads').select('id,status_crm,responsavel,obs');
+    const { data, error } = await supa.from('minc_leads').select('id,status_crm,responsavel,obs,tipo_servico');
     if (error) throw error;
     mincCRM = {};
     for (const r of (data || [])) {
-      mincCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '' };
+      mincCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '', tipoServico: r.tipo_servico || '' };
     }
     // Se não tem registros no banco, faz upsert inicial
     if (!data || data.length === 0) {
@@ -2853,7 +2936,7 @@ function renderMinc() {
     return `<tr>
       <td style="color:var(--text4);font-family:var(--cond)">${mincPag*MINC_POR_PAG+i+1}</td>
       <td>
-        <div class="minc-obra"><span title="Gravado — pós-produção" style="font-size:13px;margin-right:4px;vertical-align:middle">🎬</span>${l.obra}</div>
+        <div class="minc-obra">${renderTipoIconClicavel(l.id,[l.modulo,'cinema','audiovisual'],mincCRM[l.id]?.tipoServico||'gravado','minc')}${l.obra}</div>
         <div class="minc-empresa">${l.empresa}</div>
       </td>
       <td style="font-size:11px;color:var(--text3)">${l.municipio}</td>
@@ -2989,9 +3072,9 @@ function inicializarFsa() {
 
 async function carregarFsaCRM() {
   try {
-    const { data } = await supa.from('fsa_leads').select('id,status_crm,responsavel');
+    const { data } = await supa.from('fsa_leads').select('id,status_crm,responsavel,tipo_servico');
     fsaCRM = {};
-    for (const r of (data || [])) fsaCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '' };
+    for (const r of (data || [])) fsaCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', tipoServico: r.tipo_servico || '' };
   } catch(e) { console.warn('FSA CRM load:', e.message); }
 }
 
@@ -3002,6 +3085,8 @@ async function atualizarFsaCRM(id, titulo, produtora, valor, chamada, campo, val
     await supa.from('fsa_leads').upsert({
       id, titulo, produtora, valor: valor || 0, chamada,
       status_crm: fsaCRM[id].status,
+      responsavel: fsaCRM[id].responsavel || '',
+      tipo_servico: fsaCRM[id].tipoServico || '',
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
   } catch(e) { console.warn('FSA CRM save:', e.message); }
@@ -3113,7 +3198,7 @@ function renderFsa() {
     return `<tr>
       <td style="color:var(--text4);font-family:var(--cond)">${fsaPag*FSA_POR_PAG+i+1}</td>
       <td style="max-width:260px">
-        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchFsa('${idEsc}')"><span title="Gravado — pós-produção" style="font-size:13px;margin-right:4px;vertical-align:middle">🎬</span>${p.titulo||'—'}</div>
+        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchFsa('${idEsc}')">${renderTipoIconClicavel(idEsc,[p.chamada,'audiovisual','gravado'],fsaCRM[idEsc]?.tipoServico||'gravado','fsa')}${p.titulo||'—'}</div>
         <div class="minc-empresa">${p.data_contrato||''}</div>
       </td>
       <td style="max-width:200px">
