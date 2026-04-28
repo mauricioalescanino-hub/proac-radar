@@ -994,6 +994,9 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         <option value="Autorizada a captação total dos recursos">Captação autorizada</option>
         <option value="Em análise">Em análise</option>
       </select>
+      <select class="minc-filter-select" id="salicSegmento" onchange="renderSalic()" style="max-width:220px">
+        <option value="">Todos os segmentos</option>
+      </select>
       <input class="minc-filter-input" id="salicBusca" placeholder="🔍  Buscar nome ou proponente..." style="flex:1;min-width:180px" oninput="salicBuscarDebounce()">
       <button class="btn-sm primary" onclick="salicBuscar()" id="salicBtnBuscar">🔍 Buscar</button>
     </div>
@@ -2149,6 +2152,14 @@ async function salicBuscar(resetOffset = true) {
     });
 
     salicResultados = projetos;
+
+    // Atualiza opções do filtro de segmento sem resetar seleção atual
+    const segSelect = document.getElementById('salicSegmento');
+    const segAtual  = segSelect.value;
+    const segmentos = [...new Set(projetos.map(p => p.segmento).filter(Boolean))].sort();
+    segSelect.innerHTML = '<option value="">Todos os segmentos</option>' +
+      segmentos.map(s => `<option value="${s}"${s===segAtual?' selected':''}>${s}</option>`).join('');
+
     renderSalic();
 
     const vt = projetos.reduce((s,p) => s+(p.valor_aprovado||0), 0);
@@ -2179,7 +2190,20 @@ function renderSalic() {
     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto com acessibilidade nessa página — clique em "Próxima" para continuar.</td></tr>`;
     return;
   }
-  tbody.innerHTML = salicResultados.map((p, i) => {
+  const segFiltro = document.getElementById('salicSegmento')?.value || '';
+  const resultadosFiltrados = segFiltro ? salicResultados.filter(p => p.segmento === segFiltro) : salicResultados;
+  if (!resultadosFiltrados.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto neste segmento nessa página. Tente outra página ou remova o filtro.</td></tr>`;
+    document.getElementById('salicPagInfo').textContent = `0 projetos (filtro: ${segFiltro}) · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`;
+    document.getElementById('salicValorTotal').textContent = '—';
+    return;
+  }
+  const vtFilt = resultadosFiltrados.reduce((s,p) => s+(p.valor_aprovado||0), 0);
+  document.getElementById('salicValorTotal').textContent = vtFilt > 0 ? 'R$ '+(vtFilt/1e6).toFixed(1)+'M' : '—';
+  document.getElementById('salicPagInfo').textContent = segFiltro
+    ? `${resultadosFiltrados.length} de ${salicResultados.length} projetos (filtro: ${segFiltro}) · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`
+    : `${salicResultados.length} projetos c/ acessibilidade nessa página · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`;
+  tbody.innerHTML = resultadosFiltrados.map((p, i) => {
     const crm  = salicCRM[p.PRONAC] || { status: 'nao' };
     const a    = (p.acessibilidade||'').toLowerCase();
     const tags = [
