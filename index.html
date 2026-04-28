@@ -612,6 +612,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         <button class="source-tab" id="tabMinc" onclick="trocarFonte('minc')">MinC Nº6</button>
         <button class="source-tab" id="tabFederal" onclick="trocarFonte('federal')">🇧🇷 Federal</button>
         <button class="source-tab" id="tabSalic" onclick="trocarFonte('salic')">📜 Rouanet</button>
+        <button class="source-tab" id="tabFsa" onclick="trocarFonte('fsa')">🎬 FSA</button>
       </nav>
     </div>
     <div class="topbar-right">
@@ -1032,6 +1033,90 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         <div style="display:flex;gap:8px">
           <button class="btn-cancel" id="salicBtnPrev" onclick="salicNavegar(-1)" disabled>← Anterior</button>
           <button class="btn-cancel" id="salicBtnNext" onclick="salicNavegar(1)" disabled>Próxima →</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SEÇÃO FSA / ANCINE ── -->
+<div id="fsaSection" style="display:none;position:fixed;inset:0 0 0 0;padding-top:56px;overflow-y:auto;background:var(--bg);z-index:10">
+  <div style="padding:20px 24px;max-width:1400px;margin:0 auto">
+
+    <div class="minc-header-bar" style="background:linear-gradient(135deg,#0a1628 0%,#0d2137 50%,#0a1628 100%)">
+      <div class="minc-badge">
+        <div class="minc-badge-icon">🎬</div>
+        <div class="minc-badge-text">
+          <h3>FSA — Fundo Setorial do Audiovisual · ANCINE</h3>
+          <p>Projetos contratados via Prodecine, Prodav e chamadas públicas · Atualização mensal</p>
+        </div>
+      </div>
+      <div class="minc-stats">
+        <div class="minc-stat"><div class="val" id="fsaTotal" style="color:#67e8f9">—</div><div class="lbl">Projetos</div></div>
+        <div class="minc-stat"><div class="val" id="fsaValorTotal" style="color:#67e8f9">—</div><div class="lbl">Valor total</div></div>
+        <div class="minc-stat"><div class="val" id="fsaChamadas" style="color:#67e8f9">—</div><div class="lbl">Chamadas</div></div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="minc-filters">
+      <select class="minc-filter-select" id="fsaAnoMin" onchange="renderFsa()">
+        <option value="">Todos os anos</option>
+        <option value="2020">2020+</option>
+        <option value="2021">2021+</option>
+        <option value="2022">2022+</option>
+        <option value="2023">2023+</option>
+        <option value="2024">2024+</option>
+      </select>
+      <select class="minc-filter-select" id="fsaChamada" onchange="renderFsa()" style="max-width:200px">
+        <option value="">Todas as chamadas</option>
+      </select>
+      <input class="minc-filter-input" id="fsaBusca" placeholder="🔍  Buscar título ou produtora..." style="flex:1;min-width:200px" oninput="fsaBuscarDebounce()">
+      <select class="minc-filter-select" id="fsaFiltroCRM" onchange="renderFsa()">
+        <option value="">Todos os status CRM</option>
+        <option value="nao">Não contatado</option>
+        <option value="contato">Em contato</option>
+        <option value="proposta">Proposta enviada</option>
+        <option value="negociando">Negociando</option>
+        <option value="fechado">Fechado ✓</option>
+        <option value="descartado">Descartado</option>
+      </select>
+      <button class="btn-sm primary" onclick="fsaCarregar()" id="fsaBtnCarregar">⟳ Carregar dados</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="fsaLoading" style="display:none;text-align:center;padding:40px;color:var(--text3)">
+      <div class="pitch-dots" style="justify-content:center;display:flex;margin-bottom:12px"><span></span><span></span><span></span></div>
+      <div style="font-family:var(--cond);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase">Carregando dados do FSA/ANCINE...</div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="minc-table-wrap" id="fsaTableWrap">
+      <table class="minc-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Título do projeto</th>
+            <th>Produtora</th>
+            <th>Proponente</th>
+            <th>Chamada pública</th>
+            <th>Ano</th>
+            <th>Valor contrato</th>
+            <th>Valor liberado</th>
+            <th>CRM</th>
+            <th style="width:32px"></th>
+          </tr>
+        </thead>
+        <tbody id="fsaTbody">
+          <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text4);font-style:italic">Clique em "Carregar dados" para buscar os projetos do FSA/ANCINE</td></tr>
+        </tbody>
+      </table>
+      <div class="minc-pagination">
+        <span id="fsaPagInfo">—</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn-cancel" id="fsaBtnPrev" onclick="fsaPaginar(-1)" disabled>← Anterior</button>
+          <button class="btn-cancel" id="fsaBtnNext" onclick="fsaPaginar(1)" disabled>Próxima →</button>
         </div>
       </div>
     </div>
@@ -2593,18 +2678,22 @@ function trocarFonte(fonte) {
   const isFederal = fonte === 'federal';
   const isProac   = fonte === 'proac';
   const isSalic   = fonte === 'salic';
+  const isFsa     = fonte === 'fsa';
   document.getElementById('proacSection').style.display    = isProac   ? 'block' : 'none';
   document.getElementById('mincSection').style.display     = isMinc    ? 'block' : 'none';
   document.getElementById('federalSection').style.display  = isFederal ? 'block' : 'none';
   document.getElementById('salicSection').style.display    = isSalic   ? 'block' : 'none';
+  document.getElementById('fsaSection').style.display      = isFsa     ? 'block' : 'none';
   document.getElementById('tabProac').classList.toggle('active', isProac);
   document.getElementById('tabMinc').classList.toggle('active', isMinc);
   document.getElementById('tabFederal').classList.toggle('active', isFederal);
   document.getElementById('tabSalic').classList.toggle('active', isSalic);
+  document.getElementById('tabFsa').classList.toggle('active', isFsa);
   document.getElementById('sidebar').style.display = isProac ? '' : 'none';
   if (isMinc)    inicializarMinc();
   if (isFederal) inicializarFederal();
   if (isSalic)   inicializarSalic();
+  if (isFsa)     inicializarFsa();
 }
 
 function inicializarMinc() {
@@ -2823,6 +2912,215 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharModalDireto()
   }
   setTimeout(clearLog, 3000);
 })();
+
+// ── FSA / ANCINE LOGIC ──
+const FSA_PROXY = 'https://etc-filmes-proxy.vercel.app/api/fsa';
+const FSA_POR_PAG = 25;
+let fsaLeads = [];
+let fsaCRM = {};
+let fsaPag = 0;
+let fsaCarregado = false;
+let fsaDebounceTimer = null;
+
+function inicializarFsa() {
+  carregarFsaCRM();
+  // Só carrega os dados automaticamente na primeira vez
+  if (!fsaCarregado) fsaCarregar();
+}
+
+async function carregarFsaCRM() {
+  try {
+    const { data } = await supa.from('fsa_leads').select('id,status_crm,responsavel');
+    fsaCRM = {};
+    for (const r of (data || [])) fsaCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '' };
+  } catch(e) { console.warn('FSA CRM load:', e.message); }
+}
+
+async function atualizarFsaCRM(id, titulo, produtora, valor, chamada, campo, valor2) {
+  if (!fsaCRM[id]) fsaCRM[id] = { status: 'nao', responsavel: '' };
+  fsaCRM[id][campo] = valor2;
+  try {
+    await supa.from('fsa_leads').upsert({
+      id, titulo, produtora, valor: valor || 0, chamada,
+      status_crm: fsaCRM[id].status,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  } catch(e) { console.warn('FSA CRM save:', e.message); }
+}
+
+async function fsaCarregar() {
+  const btn = document.getElementById('fsaBtnCarregar');
+  btn.disabled = true;
+  btn.textContent = '⟳ Carregando...';
+  document.getElementById('fsaLoading').style.display = 'block';
+  document.getElementById('fsaTableWrap').style.opacity = '0.4';
+
+  try {
+    const resp = await fetch(`${FSA_PROXY}`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    fsaLeads = data.projetos || [];
+    fsaCarregado = true;
+
+    // Popular filtro de chamadas
+    const chamadas = [...new Set(fsaLeads.map(p => p.chamada).filter(Boolean))].sort();
+    const sel = document.getElementById('fsaChamada');
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">Todas as chamadas</option>' +
+      chamadas.map(c => `<option value="${c}"${c===atual?' selected':''}>${c}</option>`).join('');
+
+    fsaPag = 0;
+    renderFsa();
+
+  } catch(e) {
+    document.getElementById('fsaTbody').innerHTML =
+      `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--red)">Erro: ${e.message}</td></tr>`;
+  } finally {
+    document.getElementById('fsaLoading').style.display = 'none';
+    document.getElementById('fsaTableWrap').style.opacity = '1';
+    btn.disabled = false;
+    btn.textContent = '⟳ Atualizar';
+  }
+}
+
+function fsaBuscarDebounce() {
+  clearTimeout(fsaDebounceTimer);
+  fsaDebounceTimer = setTimeout(() => { fsaPag = 0; renderFsa(); }, 400);
+}
+
+function getFsaFiltrados() {
+  const busca   = (document.getElementById('fsaBusca')?.value || '').toLowerCase();
+  const anoMin  = parseInt(document.getElementById('fsaAnoMin')?.value || '0') || 0;
+  const chamada = document.getElementById('fsaChamada')?.value || '';
+  const crm     = document.getElementById('fsaFiltroCRM')?.value || '';
+
+  return fsaLeads.filter(p => {
+    if (anoMin  && parseInt(p.ano_edital || '0') < anoMin) return false;
+    if (chamada && p.chamada !== chamada) return false;
+    if (crm     && (fsaCRM[p.cnpj_produtora]?.status || 'nao') !== crm) return false;
+    if (busca   && !p.titulo.toLowerCase().includes(busca) && !p.produtora.toLowerCase().includes(busca) && !p.proponente.toLowerCase().includes(busca)) return false;
+    return true;
+  });
+}
+
+function renderFsa() {
+  if (!fsaCarregado) return;
+  const filtrados  = getFsaFiltrados();
+  const total      = filtrados.length;
+  const totalPags  = Math.ceil(total / FSA_POR_PAG);
+  if (fsaPag >= totalPags) fsaPag = Math.max(0, totalPags - 1);
+  const pagina     = filtrados.slice(fsaPag * FSA_POR_PAG, (fsaPag + 1) * FSA_POR_PAG);
+  const valorTotal = filtrados.reduce((s, p) => s + (p.valor_contrato || 0), 0);
+  const chamadas   = new Set(filtrados.map(p => p.chamada).filter(Boolean)).size;
+
+  document.getElementById('fsaTotal').textContent      = total.toLocaleString('pt-BR');
+  document.getElementById('fsaValorTotal').textContent = valorTotal > 0 ? 'R$ ' + (valorTotal/1e6).toFixed(1) + 'M' : '—';
+  document.getElementById('fsaChamadas').textContent   = chamadas;
+  document.getElementById('fsaPagInfo').textContent    = total
+    ? `${fsaPag*FSA_POR_PAG+1}–${Math.min((fsaPag+1)*FSA_POR_PAG,total)} de ${total} projetos`
+    : '0 projetos';
+  document.getElementById('fsaBtnPrev').disabled = fsaPag === 0;
+  document.getElementById('fsaBtnNext').disabled = fsaPag >= totalPags - 1;
+
+  const tbody = document.getElementById('fsaTbody');
+  if (!pagina.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto encontrado com os filtros aplicados.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = pagina.map((p, i) => {
+    const crmId  = p.cnpj_produtora || p.cnpj_proponente || p.titulo;
+    const crm    = fsaCRM[crmId] || { status: 'nao' };
+    const idEsc  = crmId.replace(/'/g, "\\'");
+    const titEsc = p.titulo.replace(/'/g, "\\'").substring(0, 60);
+    const proEsc = p.produtora.replace(/'/g, "\\'").substring(0, 50);
+    const chaEsc = p.chamada.replace(/'/g, "\\'").substring(0, 40);
+
+    const anoNum = parseInt(p.ano_edital || '0');
+    const anoBadgeColor = anoNum >= 2023 ? 'var(--green)' : anoNum >= 2020 ? 'var(--orange)' : 'var(--text4)';
+
+    return `<tr>
+      <td style="color:var(--text4);font-family:var(--cond)">${fsaPag*FSA_POR_PAG+i+1}</td>
+      <td style="max-width:260px">
+        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchFsa('${idEsc}')">${p.titulo||'—'}</div>
+        <div class="minc-empresa">${p.data_contrato||''}</div>
+      </td>
+      <td style="max-width:200px">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${p.produtora||'—'}</div>
+        <div style="font-size:10px;color:var(--text4)">${p.cnpj_produtora||''}</div>
+      </td>
+      <td style="font-size:11px;color:var(--text3);max-width:160px">${p.proponente||'—'}</td>
+      <td><span class="minc-modulo-badge" style="background:rgba(6,182,212,0.1);color:#0891b2;border-color:rgba(6,182,212,0.25)">${p.chamada||'—'}</span></td>
+      <td style="font-family:var(--cond);font-size:12px;font-weight:700;color:${anoBadgeColor}">${p.ano_edital||'—'}</td>
+      <td style="font-family:var(--cond);font-size:12px;font-weight:700;white-space:nowrap;color:var(--text2)">${p.valor_contrato ? formatValor(p.valor_contrato) : '—'}</td>
+      <td style="font-family:var(--cond);font-size:12px;font-weight:700;white-space:nowrap;color:${p.valor_liberado > 0 ? 'var(--green)' : 'var(--text4)'}">${p.valor_liberado > 0 ? formatValor(p.valor_liberado) : 'R$ 0'}</td>
+      <td>
+        <select class="crm-select s-${crm.status}" onchange="atualizarFsaCRM('${idEsc}','${titEsc}','${proEsc}',${p.valor_contrato||0},'${chaEsc}','status',this.value);this.className='crm-select s-'+this.value" style="font-size:11px;padding:3px 6px">
+          ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td><button onclick="abrirPitchFsa('${idEsc}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function fsaPaginar(dir) {
+  const total = getFsaFiltrados().length;
+  const totalPags = Math.ceil(total / FSA_POR_PAG);
+  fsaPag = Math.max(0, Math.min(fsaPag + dir, totalPags - 1));
+  renderFsa();
+}
+
+function abrirPitchFsa(id) {
+  const p = fsaLeads.find(x => (x.cnpj_produtora || x.cnpj_proponente || x.titulo) === id);
+  if (!p) return;
+
+  projAtual = {
+    id: id, projeto: p.titulo, proponente: p.produtora || p.proponente,
+    municipio: '—', tipoPessoa: 'PJ', segmento: p.chamada || 'FSA',
+    valor: p.valor_contrato || 0, anoEdital: p.ano_edital || '',
+    programa: 'FSA — ' + (p.chamada || 'ANCINE'), status: 'CONTRATADO',
+    inscricao: p.cnpj_produtora || p.cnpj_proponente, aprovacao: p.data_contrato || '',
+    acessInfo: '',
+    _detalhes: {
+      resumo: '',
+      descricao: `Chamada Pública: ${p.chamada||'—'}\nAno: ${p.ano_edital||'—'}\nProdutora: ${p.produtora||'—'} (${p.cnpj_produtora||'—'})\nProponente: ${p.proponente||'—'}\nProgramadora: ${p.programadora||'—'}\nValor contrato: ${p.valor_contrato ? formatValor(p.valor_contrato) : '—'}\nValor liberado: ${p.valor_liberado > 0 ? formatValor(p.valor_liberado) : 'R$ 0'}`,
+      objetivos: '', locaisTexto: '—', dtInicio: p.data_contrato, dtFim: ''
+    }
+  };
+
+  document.getElementById('pmBadgeProg').textContent = 'FSA / ANCINE';
+  document.getElementById('pmBadgeProg').style.cssText = 'background:#ecfeff;color:#0891b2;border:1px solid rgba(8,145,178,0.25)';
+  document.getElementById('pmBadgeTipo').textContent = '🎬 ' + (p.chamada || 'Fundo Setorial');
+  document.getElementById('pmBadgeTipo').style.display = '';
+  document.getElementById('pmBadgeStatus').textContent = 'Contratado';
+  document.getElementById('pmBadgeStatus').style.cssText = 'background:#ecfdf5;color:#059669;border:1px solid rgba(5,150,105,0.2)';
+  document.getElementById('pmTitulo').textContent = p.titulo || '—';
+  document.getElementById('pmProponente').textContent = '🎬 ' + (p.produtora || p.proponente || '—');
+  document.getElementById('pmMunicipio').textContent = '📋 ' + (p.chamada || '—');
+  document.getElementById('pmInscricao').textContent = '🏢 ' + (p.cnpj_produtora || p.cnpj_proponente || '—');
+  document.getElementById('pmValor').textContent = p.valor_contrato ? formatValor(p.valor_contrato) : '—';
+  document.getElementById('pmData').textContent = p.data_contrato || '—';
+  const anoCard = document.getElementById('pmAno');
+  anoCard.closest('.proj-info-card').querySelector('.label').textContent = 'Ano edital';
+  anoCard.textContent = p.ano_edital || '—';
+  document.getElementById('pmTipoPessoa').textContent = 'Pessoa Jurídica';
+  document.getElementById('pmSegmento').textContent = p.chamada || '—';
+  document.getElementById('pmStatusApi').textContent = p.valor_liberado > 0 ? 'Desembolso iniciado' : 'Contratado';
+  document.getElementById('pmAcessBloco').style.display = 'none';
+  document.getElementById('pmDescBloco').style.display = '';
+  document.getElementById('pmDesc').innerHTML = `
+    <div class="proj-section-title">Dados do contrato FSA</div>
+    <div class="proj-desc-box"><pre style="font-family:var(--sans);white-space:pre-wrap;font-size:12px">${projAtual._detalhes.descricao}</pre></div>`;
+  document.getElementById('pitchContent').innerHTML = '<span class="pitch-empty">Clique em "Gerar pitch" para criar uma abordagem comercial personalizada.</span>';
+  document.getElementById('btnCopyPitch').disabled = true;
+  document.getElementById('btnGerarPitch').disabled = false;
+  document.getElementById('btnGerarPitch').textContent = '✦ Gerar pitch';
+  document.getElementById('moskitSyncResult').textContent = '';
+  document.getElementById('btnEnviarMoskit').disabled = !localStorage.getItem('etc_moskit_key');
+  document.getElementById('projOverlay').classList.add('open');
+}
 </script>
 </div><!-- fim #appScreen -->
 
