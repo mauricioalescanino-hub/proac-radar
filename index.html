@@ -299,7 +299,74 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
   .charts-row { grid-template-columns: 1fr; }
 }
 
-/* ── MOSKIT CONFIG PANEL ── */
+/* ── SOURCE TABS ── */
+.source-tabs { display:flex; gap:3px; align-items:center; }
+.source-tab {
+  font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  padding:5px 13px; border-radius:6px; border:1px solid rgba(255,255,255,0.15);
+  background:none; color:rgba(255,255,255,0.45); cursor:pointer; transition:all .15s;
+}
+.source-tab:hover { color:rgba(255,255,255,0.8); border-color:rgba(255,255,255,0.3); }
+.source-tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+/* ── MINC SECTION ── */
+#mincSection { display:none; }
+#proacSection { display:block; }
+
+.minc-header-bar {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(99,102,241,0.3); border-radius: var(--radius);
+  padding: 16px 20px; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.minc-badge { display:flex; align-items:center; gap: 10px; }
+.minc-badge-icon { font-size: 22px; }
+.minc-badge-text h3 { font-family:var(--cond); font-size:14px; font-weight:800; color:#fff; margin-bottom:2px; }
+.minc-badge-text p { font-size:11px; color:rgba(255,255,255,0.5); }
+.minc-stats { display:flex; gap:20px; }
+.minc-stat { text-align:center; }
+.minc-stat .val { font-family:var(--cond); font-size:20px; font-weight:800; color:#818cf8; }
+.minc-stat .lbl { font-size:10px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:.06em; font-family:var(--cond); font-weight:600; }
+
+.minc-filters {
+  display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center;
+}
+.minc-filter-input {
+  background:var(--bg2); border:1px solid var(--border2); color:var(--text);
+  font-family:var(--sans); font-size:12px; padding:7px 11px; border-radius:var(--radius-sm);
+  outline:none; transition:border-color .15s;
+}
+.minc-filter-input:focus { border-color:var(--blue); }
+.minc-filter-select {
+  background:var(--bg2); border:1px solid var(--border2); color:var(--text);
+  font-family:var(--cond); font-size:11px; font-weight:700; padding:7px 11px; border-radius:var(--radius-sm);
+  outline:none; cursor:pointer;
+}
+
+.minc-table-wrap { overflow-x:auto; border-radius:var(--radius); border:1px solid var(--border); }
+.minc-table { width:100%; border-collapse:collapse; font-size:12px; }
+.minc-table th {
+  background:var(--bg3); font-family:var(--cond); font-size:10px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em; color:var(--text3);
+  padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap;
+}
+.minc-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; color:var(--text2); }
+.minc-table tr:last-child td { border-bottom:none; }
+.minc-table tr:hover td { background:var(--bg3); }
+.minc-obra { font-weight:600; color:var(--text); font-size:12px; line-height:1.3; }
+.minc-empresa { font-size:11px; color:var(--text3); margin-top:2px; }
+.minc-modulo-badge {
+  display:inline-flex; padding:2px 8px; border-radius:4px; font-family:var(--cond);
+  font-size:10px; font-weight:700; background:rgba(99,102,241,0.12); color:#818cf8;
+  border:1px solid rgba(99,102,241,0.25); white-space:nowrap;
+}
+.minc-sit-badge {
+  display:inline-flex; padding:2px 8px; border-radius:4px; font-family:var(--cond);
+  font-size:10px; font-weight:700; white-space:nowrap;
+}
+.minc-sit-badge.sel { background:#ecfdf5; color:#059669; border:1px solid rgba(5,150,105,0.2); }
+.minc-sit-badge.cota { background:#fffbeb; color:#d97706; border:1px solid rgba(217,119,6,0.2); }
+.minc-pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--border); font-size:12px; color:var(--text3); }
 .moskit-config-btn {
   display: flex; align-items: center; gap: 7px;
   background: none; border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.55);
@@ -538,6 +605,12 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
       </div>
       <div class="brand-divider"></div>
       <div class="brand-subtitle">ProAC Radar</div>
+      <div class="brand-divider"></div>
+      <!-- ABAS DE FONTE -->
+      <nav class="source-tabs">
+        <button class="source-tab active" id="tabProac" onclick="trocarFonte('proac')">ProAC SP</button>
+        <button class="source-tab" id="tabMinc" onclick="trocarFonte('minc')">MinC Nº6</button>
+      </nav>
     </div>
     <div class="topbar-right">
       <button class="moskit-config-btn" id="moskitConfigBtn" onclick="abrirCfg()">
@@ -560,7 +633,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
   </header>
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-label">Busca</div>
       <div class="filter-group">
@@ -632,6 +705,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
   </aside>
 
   <!-- MAIN -->
+  <div id="proacSection">
   <main class="main">
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="log-wrap" id="logWrap"><div id="logLines"></div></div>
@@ -708,6 +782,78 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
       </div>
     </div>
   </main>
+  </div><!-- fim #proacSection -->
+</div>
+
+<!-- ── SEÇÃO MINC ── -->
+<div id="mincSection" style="display:none">
+  <div style="padding:20px 24px;max-width:1400px;margin:0 auto">
+
+    <div class="minc-header-bar">
+      <div class="minc-badge">
+        <div class="minc-badge-icon">🎬</div>
+        <div class="minc-badge-text">
+          <h3>Edital MinC Nº 6/2025 — Comercialização em Cinema</h3>
+          <p>Ministério da Cultura · Secretaria do Audiovisual · Resultado Final</p>
+        </div>
+      </div>
+      <div class="minc-stats">
+        <div class="minc-stat"><div class="val" id="mincTotalFiltrado">162</div><div class="lbl">Projetos</div></div>
+        <div class="minc-stat"><div class="val" id="mincValorTotal">R$ 59,6M</div><div class="lbl">Valor Total</div></div>
+        <div class="minc-stat"><div class="val" id="mincUFCount">14</div><div class="lbl">Estados</div></div>
+      </div>
+    </div>
+
+    <div class="minc-filters">
+      <input class="minc-filter-input" id="mincBusca" placeholder="🔍  Buscar obra ou empresa..." style="flex:1;min-width:200px" oninput="renderMinc()">
+      <select class="minc-filter-select" id="mincFiltroUF" onchange="renderMinc()">
+        <option value="">Todos os estados</option>
+      </select>
+      <select class="minc-filter-select" id="mincFiltroModulo" onchange="renderMinc()">
+        <option value="">Todos os módulos</option>
+        <option>Módulo 1</option>
+        <option>Módulo 2</option>
+        <option>Módulo 3</option>
+        <option>Módulo 4</option>
+        <option>Módulo 5</option>
+      </select>
+      <select class="minc-filter-select" id="mincFiltroCRM" onchange="renderMinc()">
+        <option value="">Todos os status</option>
+        <option value="nao">Não contatado</option>
+        <option value="contato">Em contato</option>
+        <option value="proposta">Proposta enviada</option>
+        <option value="negociando">Negociando</option>
+        <option value="fechado">Fechado ✓</option>
+        <option value="descartado">Descartado</option>
+      </select>
+    </div>
+
+    <div class="minc-table-wrap">
+      <table class="minc-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Obra / Empresa</th>
+            <th>Município</th>
+            <th>UF</th>
+            <th>Módulo</th>
+            <th>Valor</th>
+            <th>Situação</th>
+            <th>CRM</th>
+            <th style="width:32px"></th>
+          </tr>
+        </thead>
+        <tbody id="mincTbody"></tbody>
+      </table>
+      <div class="minc-pagination">
+        <span id="mincPagInfo">—</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn-cancel" id="mincBtnPrev" onclick="mincPagina(-1)">← Anterior</button>
+          <button class="btn-cancel" id="mincBtnNext" onclick="mincPagina(1)">Próxima →</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL DETALHE DO PROJETO + PITCH IA -->
@@ -1778,7 +1924,193 @@ async function carregarLeadsSupabase() {
   }
 }
 
-// ── BOOT ──
+// ── MINC DATA & LOGIC ──
+const MINC_LEADS = [{"id":"minc6-001","obra":"O VENTO VAI REAGIR","empresa":"Diazul de Cinema Produções Artísticas e Audiovisuais Ltda","municipio":"Brasília","uf":"DF","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada"},{"id":"minc6-002","obra":"AO SABOR DAS CINZAS","empresa":"EMBAÚBA FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 5","valor":250000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada"},{"id":"minc6-003","obra":"CARTAS PARA","empresa":"LANÇA FILMES","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-004","obra":"MORTE E VIDA MADALENA","empresa":"EMBAÚBA FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 4","valor":350000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada"},{"id":"minc6-005","obra":"Coração das Trevas","empresa":"Karmatique Imagens Ltda","municipio":"São Bento do Sapucaí","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada após contrarrazão"},{"id":"minc6-006","obra":"FAMÍLIA DE SORTE","empresa":"GULLANE + DISTRIBUIDORA AUDIOVISUAL & EDITORA LITEROMUSICAL LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-007","obra":"MAMBEMBE","empresa":"ROSEIRA PRODUÇOES ARTISTICAS LTDA","municipio":"Goiânia","uf":"GO","modulo":"Módulo 4","valor":350000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada"},{"id":"minc6-008","obra":"AS VITRINES","empresa":"FABULETA CONSULTORIA E PROMOCOES CULTURAIS LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 2","valor":1000000.0,"regiao":"","situacao":"Selecionada após contrarrazão"},{"id":"minc6-009","obra":"ELZA","empresa":"GULLANE + DISTRIBUIDORA AUDIOVISUAL & EDITORA LITEROMUSICAL LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-010","obra":"CRIATURAS - UMA AVENTURA ENTRE DOIS MUNDOS","empresa":"RETRATO FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada após contrarrazão"},{"id":"minc6-011","obra":"Eu também não gozei","empresa":"BELA FILMES PRODUCOES LTDA ME","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-012","obra":"Peréio, Eu te Odeio","empresa":"DESCOLONIZA FILMES E PRODUÇÕES ARTÍSTICAS EIRELI","municipio":"São Paulo","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada pós recurso"},{"id":"minc6-013","obra":"FILHAS DA NOITE","empresa":"FILMES DE MARTE","municipio":"Recife","uf":"PE","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-014","obra":"LUSCO-FUSCO","empresa":"MANJERICÃO FILMES","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-015","obra":"O PROJETO","empresa":"GULLANE + DISTRIBUIDORA AUDIOVISUAL & EDITORA LITEROMUSICAL LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-016","obra":"Saudade do Futuro","empresa":"BUTTERFLY FILMES LTDA.","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-017","obra":"SE EU FOSSE VIVO,,,VIVIA","empresa":"MALUTE FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 3","valor":500000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada"},{"id":"minc6-018","obra":"BEATRIZ VIRA FOLHAS","empresa":"PARALELO 15 FILMES LTDA","municipio":"Cuiabá","uf":"MT","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada"},{"id":"minc6-019","obra":"Encantaria","empresa":"Cazumbá Produções Culturais LTDA","municipio":"Curitiba","uf":"PR","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-020","obra":"VIRTUOSAS","empresa":"OLHAR DISTRIBUIÇÃO DE FILMES LTDA","municipio":"Curitiba","uf":"PR","modulo":"Módulo 3","valor":500000.0,"regiao":"SUL","situacao":"Selecionada pós recurso"},{"id":"minc6-021","obra":"VOU TIRAR VOCÊ DESSE LUGAR","empresa":"LIRA FILMES PRODUÇÕES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-022","obra":"ATÉ ONDE A VISTA ALCANÇA","empresa":"CAJUÍNA AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-023","obra":"CERRO CORÁ","empresa":"RETRATO FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-024","obra":"FIEBRE","empresa":"IVAN CARLOS DE MELO PRODUÇÕES CULTURAIS ME","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-025","obra":"RUA DO PESCADOR, nº6","empresa":"LANÇA FILMES","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-026","obra":"UM MINUTO É UMA ETERNIDADE PARA QUEM ESTÁ SOFRENDO","empresa":"NOVOS OLHARES PRODUÇÕES AUDIOVISUAIS LTDA","municipio":"Aracaju","uf":"SE","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-027","obra":"BORDA DO MUNDO","empresa":"VITRINE FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-028","obra":"Nem Toda História de Amor Acaba em Morte","empresa":"ELO AUDIOVISUAL SERVIÇOS LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-029","obra":"NIMUENDAJÚ","empresa":"O2 PRODUÇÕES ARTÍSTICA E CINEMATOGRÁFICAS LTDA.","municipio":"Cotia","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-030","obra":"TELÚRICA, A ÍNTIMA UTOPIA","empresa":"DESCOLONIZA FILMES E PRODUÇÕES ARTÍSTICAS EIRELI","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-031","obra":"OVERMAN","empresa":"MIGDAL PRODUÇÕES CINEMATOGRÁFICAS LTDA.","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-032","obra":"NÃO ESTAMOS SONHANDO","empresa":"CÉU VERMELHO FOGO FILMES LTDA.","municipio":"Maceió","uf":"AL","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-033","obra":"APENAS 3 MENINAS","empresa":"ELO AUDIOVISUAL SERVIÇOS LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 2","valor":1000000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-034","obra":"AQUELE QUE VIU O ABISMO","empresa":"EMBAÚBA FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 5","valor":250000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada"},{"id":"minc6-035","obra":"AURORA","empresa":"LIVRES DISTRIBUIDORA DE AUDIOVISUAL LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-036","obra":"HERANÇA DE NARCISA","empresa":"OLHAR DISTRIBUIÇÃO DE FILMES LTDA","municipio":"Curitiba","uf":"PR","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-037","obra":"NADA A FAZER","empresa":"LUDWIG MAIA ARTHOUSE DISTRIBUIDORA DE FILMES LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-038","obra":"OLHE PRA MIM","empresa":"OLHAR DISTRIBUIÇÃO DE FILMES LTDA","municipio":"Curitiba","uf":"PR","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada pós recurso"},{"id":"minc6-039","obra":"SAMUEL E A LUZ","empresa":"CAJUÍNA AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada pós recurso"},{"id":"minc6-040","obra":"TESOURO NATTERER","empresa":"O2 PRODUÇÕES ARTÍSTICA E CINEMATOGRÁFICAS LTDA","municipio":"Cotia","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-041","obra":"CACILDA BECKER EM CENA ABERTA","empresa":"RESERVA NACIONAL DISTRIBUIDORA DE FILMES LTDA - IMOVISION","municipio":"São Paulo","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-042","obra":"Universo Circular - Jocy de Oliveira","empresa":"Gore Produtora Cinematográfica LTDA","municipio":"São Bernardo do Campo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-043","obra":"DIAMANTES","empresa":"DESCOLONIZA FILMES E PRODUÇÕES ARTÍSTICAS EIRELI","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-044","obra":"DR, OCRIDE","empresa":"VOO AUDIOVISUAL PRODUCOES ARTISTICAS LTDA ME","municipio":"Ipiaú","uf":"BA","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-045","obra":"HORIZONTE","empresa":"OLHAR DISTRIBUIÇÃO DE FILMES LTDA","municipio":"Curitiba","uf":"PR","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-046","obra":"Ladeiras da Memória: paisagens do Clube da Esquina","empresa":"Rildas Filmes e Producoes Artisticas LTDA","municipio":"Rio das Ostras","uf":"RJ","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-047","obra":"A MENINA SOB O VÉU","empresa":"DESATINO FILMES","municipio":"Maringá","uf":"PR","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-048","obra":"ESPELHO DE TARSILA","empresa":"GULLANE+ DISTRIBUIDORA AUDIOVISUAL & EDITORA LITEROMUSICAL","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-049","obra":"AMORES","empresa":"VITRINE FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-050","obra":"NORTE SUL ESQUERDA DIREITA","empresa":"TRAILER FILMES LTDA.","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-051","obra":"PEIXE ABISSAL","empresa":"DESCOLONIZA FILMES E PRODUÇÕES ARTÍSTICAS EIRELI","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-052","obra":"Boca do Lobo","empresa":"Karmatique Imagens Ltda","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-053","obra":"QUATRO MENINAS","empresa":"LUDWIG MAIA ARTHOUSE DISTRIBUIDORA DE FILMES LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada após contrarrazão"},{"id":"minc6-054","obra":"A MULHER DE TODOS","empresa":"MERCÚRIO PRODUÇÕES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-055","obra":"AMIGOS EM FUGA","empresa":"SM DISTRIBUIDORA DE FILMES LTDA","municipio":"Barueri","uf":"SP","modulo":"Módulo 2","valor":1000000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-056","obra":"GLÓRIA E LIBERDADE","empresa":"ESTÚDIO GIZ PRODUÇÕES LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-057","obra":"PAPAYA","empresa":"CAJUÍNA AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 3","valor":500000.0,"regiao":"NORDESTE","situacao":"Selecionada pós recurso"},{"id":"minc6-058","obra":"AFRONTOSA","empresa":"CAJUÍNA AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-059","obra":"AS DEZ VANTAGENS DE MORRER DEPOIS DE VOCÊ","empresa":"SM DISTRIBUIDORA DE FILMES LTDA","municipio":"Barueri","uf":"SP","modulo":"Módulo 1","valor":2000000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-060","obra":"A TROPA DE GOIÂNIA!","empresa":"CAOLHA FILMES LTDA ME","municipio":"Goiânia","uf":"GO","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada"},{"id":"minc6-061","obra":"AVENTURAS DE MAKUNÁIMA","empresa":"FILMES QUE VOAM - FAGANELLO COMUNICAÇÕES LTDA","municipio":"Florianópolis","uf":"SC","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-062","obra":"CAPIM NAVALHA","empresa":"DESCOLONIZA FILMES E PRODUÇÕES ARTÍSTICAS EIRELI","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-063","obra":"MUNDURUKUYÜ - A FLORESTA DAS MULHERES PEIXE","empresa":"BIZUNGUINHA PRODUÇÕES ARTISTICAS LTDA - ME","municipio":"Salvador","uf":"BA","modulo":"Módulo 3","valor":500000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-064","obra":"OBESO MÓRBIDO","empresa":"CAJUÍNA AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-065","obra":"A PROFESSORA DE FRANCÊS","empresa":"EMBAÚBA FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 3","valor":500000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada"},{"id":"minc6-066","obra":"CARTA A UN VIEJO MASTER","empresa":"DM FILMES E PRODUCOES ARTISTICAS LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-067","obra":"NÃO EXISTE ALMOÇO GRÁTIS","empresa":"DESCOLONIZA FILMES E PRODUÇÕES ARTÍSTICAS EIRELI","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-068","obra":"NOSFERATU","empresa":"BELA FILMES PRODUCOES LTDA ME","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-069","obra":"COPACABANA, 4 DE MAIO","empresa":"Acalante Filmes","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-070","obra":"LAS PREÑADAS","empresa":"KINOPUS AUDIOVISUAL LTDA","municipio":"Londrina","uf":"PR","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-071","obra":"OS INFIÉIS","empresa":"Lucas P. Bonalumi – Criação e Produção de Conteúdo / LPB CONTENT","municipio":"São José do Rio Preto","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-072","obra":"DOM SALVADOR E ABOLIÇÃO","empresa":"PRÓDIGO FILMS LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-073","obra":"AÇUCENA","empresa":"MARILIA OLIVEIRA CUNHA -ME","municipio":"Salvador","uf":"BA","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-074","obra":"ELA FOI ALI GUARDAR O CORAÇÃO NA GELADEIRA","empresa":"CRISOL FILMES","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-075","obra":"ESCONDERIJO DOS GIGANTES","empresa":"LAMBEOLHOS PRODUÇÕES LTDA","municipio":"Fortaleza","uf":"CE","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-076","obra":"JACKSON, NA BATIDA DO PANDEIRO","empresa":"KAJÁ FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-077","obra":"LONA PRETA","empresa":"KAJÁ FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-078","obra":"MALICK","empresa":"PIPA NATIVA PRODUÇÃO CULTURAL LTDA (PIPA PICTURES)","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-079","obra":"PAU D'ARCO","empresa":"CAJUÍNA AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-080","obra":"SENHORAS","empresa":"LANÇA FILMES","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 3","valor":500000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-081","obra":"SALOMÉ","empresa":"RETRATO FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-082","obra":"LOVE KILLS","empresa":"O2 PRODUÇÕES ARTÍSTICA E CINEMATOGRÁFICAS LTDA","municipio":"Cotia","uf":"SP","modulo":"Módulo 2","valor":1000000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-083","obra":"SAMBADORES","empresa":"TÊM DENDÊ PRODUÇÕES LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-084","obra":"FILHAS DA LUA","empresa":"PANDA FILMES LTDA","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-085","obra":"BATGUANO RETURNS - ROBEN NA ESTRADA","empresa":"EMBAÚBA FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 5","valor":250000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada pós recurso"},{"id":"minc6-086","obra":"CHOFRE","empresa":"RENDEIRA FILMES PRODUÇÕES LTDA","municipio":"João Pessoa","uf":"PB","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-087","obra":"TOADA PARA JOSÉ SIQUEIRA","empresa":"COMPLÔ","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-088","obra":"Ary","empresa":"ELO AUDIOVISUAL SERVIÇOS LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-089","obra":"NOTAS SOBRE UM DESTERRO","empresa":"FABULÁRIO FILMES PRODUÇÕES ARTÍSTICAS LTDA.","municipio":"Curitiba","uf":"PR","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-090","obra":"INVISIBLE","empresa":"CAPURI","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-091","obra":"ENQUANTO O CÉU NÃO ME ESPERA","empresa":"KAJÁ FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-092","obra":"LONDON 70","empresa":"RP OLINDA LTDA","municipio":"Recife","uf":"PE","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-093","obra":"Sérgio Mamberti - Memórias do Brasil","empresa":"KAJÁ FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-094","obra":"TALISMÃ","empresa":"VITRINE FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-095","obra":"VASTA NATUREZA DE MINHA MÃE","empresa":"GABRIELA DIAS HOLZ PRODUCOES CINEMATOGRAFICAS LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-096","obra":"A MULHER QUE CHORA","empresa":"OLHAR DISTRIBUIÇÃO DE FILMES LTDA","municipio":"Curitiba","uf":"PR","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-097","obra":"COLEGAS 2 - A MISSAO","empresa":"H20 DISTRIBUIDORA DE FILMES LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 2","valor":1000000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-098","obra":"MOVIMENTO PERPÉTUO","empresa":"CAJUÍNA AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-099","obra":"ESCUMALHA","empresa":"Lucas P. Bonalumi – Criação e Produção de Conteúdo","municipio":"São José do Rio Preto","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-100","obra":"TEORIA DO IMPETO","empresa":"LANTERNA MÁGICA PRODUÇÕES LTDA","municipio":"Brasília","uf":"DF","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada"},{"id":"minc6-101","obra":"FILHOS DA DITADURA","empresa":"PANDA FILMES LTDA","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-102","obra":"NÓS SOMOS O AMANHÃ","empresa":"DESCOLONIZA FILMES E PRODUÇÕES ARTÍSTICAS EIRELI","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada pós recurso"},{"id":"minc6-103","obra":"O MUNDO QUE EU CONHEÇO LÁ NÃO EXISTE MAIS","empresa":"PIPA NATIVA PRODUÇÃO CULTURAL LTDA (PIPA PICTURES)","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-104","obra":"PELE DE RINOCERONTE","empresa":"LUDWIG MAIA ARTHOUSE DISTRIBUIDORA DE FILMES LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-105","obra":"A BAILARINA E O BOTO","empresa":"MARIA FARINHA FILMES E PRODUÇÕES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-106","obra":"A MEMÓRIA DA ÁGUA","empresa":"Esmeralda Filmes Distribuição e Locação Ltda.","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-107","obra":"AMÍLCAR CABRAL, CORAÇÃO PAN AFRICANO E REVOLUCIONÁRIO","empresa":"ABARÁ PRODUÇÃO AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-108","obra":"AS FLORESTAS DA NOITE","empresa":"Lucas P. Bonalumi – Criação e Produção de Conteúdo","municipio":"São José do Rio Preto","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-109","obra":"CORDÉLICOS: A ORIGEM DO CABRA DA PESTE","empresa":"RETRATO FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada pós recurso"},{"id":"minc6-110","obra":"ENTREQUADRAS","empresa":"PAPAI PEQUENO HISTÓRIAS E FILMES LTDA","municipio":"Brasília","uf":"DF","modulo":"Módulo 4","valor":350000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada"},{"id":"minc6-111","obra":"TRANSAMAZONIA","empresa":"MUAMBA ESTUDIO LTDA","municipio":"Belém","uf":"PA","modulo":"Módulo 5","valor":250000.0,"regiao":"NORTE","situacao":"Selecionada"},{"id":"minc6-112","obra":"Fiz um Foguete Imaginando que Você Vinha","empresa":"Moçambique Audiovisual LTDA","municipio":"Fortaleza","uf":"CE","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-113","obra":"CHUMBO","empresa":"PARALELO 15 FILMES LTDA.","municipio":"Cuiabá","uf":"MT","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada"},{"id":"minc6-114","obra":"AS BENZEDEIRAS","empresa":"SARASVATI PRODUTORA CULTURAL LTDA ME","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 4","valor":350000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada"},{"id":"minc6-115","obra":"MATO","empresa":"PARALELO 15 FILMES","municipio":"Cuiabá","uf":"MT","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada"},{"id":"minc6-116","obra":"OCEÂNICO","empresa":"FABULETA CONSULTORIA E PROMOCOES CULTURAIS LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 1","valor":2000000.0,"regiao":"","situacao":"Selecionada"},{"id":"minc6-117","obra":"VEM GUARNICÊ","empresa":"CATIRINA FILMES","municipio":"São Luís","uf":"MA","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-118","obra":"COBRA CANOA","empresa":"ABARÁ PRODUÇÃO AUDIOVISUAL LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 3","valor":500000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-119","obra":"MALAIKA","empresa":"EMBAÚBA FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 5","valor":250000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-120","obra":"QUANDO A GENTE MENINA CRESCE","empresa":"OKNA PRODUÇÕES","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-121","obra":"A FARPA","empresa":"CRISGE PRODUÇÕES AUDIOVISUAIS LTDA","municipio":"Goiânia","uf":"GO","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-122","obra":"CAIS","empresa":"MALUTE FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 4","valor":350000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-123","obra":"SAMBA-CANÇÃO","empresa":"A HORA VAGABUNDA FILMES LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 4","valor":350000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-124","obra":"A MARCA DO JAGUAR - O DESPERTAR DO FOGO","empresa":"BASSET HOUND FILMES LTDA - EPP","municipio":"Salvador","uf":"BA","modulo":"Módulo 3","valor":500000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-125","obra":"PONTOS DE FORÇA","empresa":"TÊM DENDÊ PRODUÇÕES LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-126","obra":"VIVO 76!","empresa":"RP OLINDA LTDA","municipio":"Recife","uf":"PE","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-127","obra":"REPRESA","empresa":"OLHAR DISTRIBUIÇÃO DE FILMES LTDA","municipio":"Curitiba","uf":"PR","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada"},{"id":"minc6-128","obra":"PALCO- CAMA","empresa":"FAROLCINEMATROGRAFICO","municipio":"Olinda","uf":"PE","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada"},{"id":"minc6-129","obra":"O HOMEM DO FRAQUE VERDE","empresa":"Vilabela Produções Artísticas LTDA EPP","municipio":"Recife","uf":"PE","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização após contrarrazão"},{"id":"minc6-130","obra":"FLOR DE LÓTUS","empresa":"PANDA FILMES LTDA","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-131","obra":"MEMÓRIA DE ELEFANTE","empresa":"PARALELO 15 FILMES","municipio":"Cuiabá","uf":"MT","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-132","obra":"QUANDO TUDO JOGA CONTRA (EX - QUANDO UM NÃO QUER)","empresa":"OLHAR DISTRIBUIÇÃO DE FILMES LTDA","municipio":"Curitiba","uf":"PR","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-133","obra":"ECOLOUCOS - UMA COMÉDIA INSUSTENTÁVEL","empresa":"34 FILMES LTDA ME","municipio":"Brasília","uf":"DF","modulo":"Módulo 4","valor":350000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-134","obra":"ADEUS, VERÃO!","empresa":"VENTANIA PRODUÇÕES AUDIOVISUAIS","municipio":"Vitória","uf":"ES","modulo":"Módulo 5","valor":250000.0,"regiao":"ESPÍRITO SANTO","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-135","obra":"CORPOS INVISÍVEIS","empresa":"FALANGE PRODUCOES LTDA","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-136","obra":"VERDE OLIVA","empresa":"LANÇA FILMES","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-137","obra":"BENVINDOS","empresa":"PIQUE-BANDEIRA PRODUÇÕES LTDA","municipio":"Vitória","uf":"ES","modulo":"Módulo 5","valor":250000.0,"regiao":"ESPÍRITO SANTO","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-138","obra":"TORNIQUETE","empresa":"BOULEVARD FILMES LTDA","municipio":"São Paulo","uf":"SP","modulo":"Módulo 5","valor":250000.0,"regiao":"","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-139","obra":"EXU E O UNIVERSO","empresa":"LIVRES DISTRIBUIDORA DE AUDIOVISUAL LTDA","municipio":"Rio de Janeiro","uf":"RJ","modulo":"Módulo 4","valor":350000.0,"regiao":"","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-140","obra":"GRAVIDADE","empresa":"SEREIA DISTRIBUIÇÃO DE FILMES LTDA-ME","municipio":"Fortaleza","uf":"CE","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-141","obra":"HOMENS DO MAR","empresa":"VIU CINE COMUNICAÇÃO LTDA","municipio":"Recife","uf":"PE","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-142","obra":"JAMARY","empresa":"LIRA FILMES PRODUÇÕES LTDA.","municipio":"São Paulo","uf":"SP","modulo":"Módulo 3","valor":500000.0,"regiao":"","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-143","obra":"NÃO DÁ PRA ESQUECER","empresa":"ADALBERTO PENNA PRODUÇÕES CINEMATOGRÁFICAS LTDA","municipio":"Florianópolis","uf":"SC","modulo":"Módulo 4","valor":350000.0,"regiao":"SUL","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-144","obra":"O Tabaréu Urbano","empresa":"CIDADE DA CULTURA PRODUÇÃO DE EVENTOS CULTURAIS LTDA","municipio":"Feira de Santana","uf":"BA","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-145","obra":"OS NAUFRAGADOS","empresa":"REALIZART PRODUÇÃO AUDIOVISUAL LTDA","municipio":"Florianópolis","uf":"SC","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-146","obra":"ENREDANDO AS PESSOAS","empresa":"EDER SAN JUNIOR CINEMATOGRAFICA E ARTE LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 5","valor":250000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-147","obra":"SOB O OLHAR DA LEI","empresa":"PANDA FILMES LTDA","municipio":"Porto Alegre","uf":"RS","modulo":"Módulo 5","valor":250000.0,"regiao":"SUL","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-148","obra":"SEMENTES MIGRANTES","empresa":"RENDER BRASIL PRODUÇÕES LTDA","municipio":"Campo Grande","uf":"MS","modulo":"Módulo 5","valor":250000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-149","obra":"O Cangaceiro da Moviola","empresa":"RIO VERDE FILMES E PRODUCOES ARTISTICAS LTDA","municipio":"Varginha","uf":"MG","modulo":"Módulo 5","valor":250000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-150","obra":"MELHOR QUEIJO DO MUNDO","empresa":"QUEVOA PRODUCAO CULTURAL LTDA","municipio":"Belo Horizonte","uf":"MG","modulo":"Módulo 4","valor":350000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada Cota Regionalização após contrarrazão"},{"id":"minc6-151","obra":"QUANTA REZA SERÁ PRECISO PARA UM SIMPLES BANHO DE MAR","empresa":"TOCA FILMES LTDA","municipio":"Salvador","uf":"BA","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-152","obra":"CORPO CLANDESTINO","empresa":"CABORÉ FILMES","municipio":"Natal","uf":"RN","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-153","obra":"BAILE DAS LUZES","empresa":"BIZUNGUINHA PRODUÇÕES ARTISTICAS LTDA - ME","municipio":"Salvador","uf":"BA","modulo":"Módulo 3","valor":500000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-154","obra":"SUPERPINA","empresa":"BABA PRODUÇÕES CINEMATOGRÁFICAS E ARTÍSTICAS LTDA","municipio":"Recife","uf":"PE","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-155","obra":"FILHO DAS ESTRELAS","empresa":"LOPES FILMES LTDA.","municipio":"Uberlândia","uf":"MG","modulo":"Módulo 4","valor":350000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-156","obra":"YKAMIABAS","empresa":"Iguape Produções Ltda","municipio":"Manaus","uf":"AM","modulo":"Módulo 4","valor":350000.0,"regiao":"NORTE","situacao":"Selecionada Cota Vocacionada"},{"id":"minc6-157","obra":"VORAGEM","empresa":"NOTURNA CINEMATOGRÁFICA LTDA","municipio":"Uberlândia","uf":"MG","modulo":"Módulo 5","valor":250000.0,"regiao":"MINAS GERAIS","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-158","obra":"A JARDINEIRA","empresa":"ALELO FILMES PRODUÇÕES ARTÍSTICAS LTDA","municipio":"Caldas Novas","uf":"GO","modulo":"Módulo 4","valor":350000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-159","obra":"CANTO DOS OSSOS","empresa":"LAMBEOLHOS PRODUÇÕES LTDA","municipio":"Fortaleza","uf":"CE","modulo":"Módulo 5","valor":250000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-160","obra":"FILHOS DO LITORAL CENTRAL","empresa":"MARSH FILMES","municipio":"Campo Grande","uf":"MS","modulo":"Módulo 4","valor":350000.0,"regiao":"CENTRO OESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-161","obra":"Guerra do Pau de Colher","empresa":"CAROÁ PRODUÇÕES","municipio":"Petrolina","uf":"PE","modulo":"Módulo 3","valor":500000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"},{"id":"minc6-162","obra":"O NORDESTE SOB A CARAVANA FARKAS","empresa":"NEGA DE CAMALAU PRODUCAO DE FILMES","municipio":"João Pessoa","uf":"PB","modulo":"Módulo 4","valor":350000.0,"regiao":"NORDESTE","situacao":"Selecionada Cota Regionalização"}];
+
+let mincCRM = {};
+let mincPag = 0;
+const MINC_POR_PAG = 30;
+
+function trocarFonte(fonte) {
+  const isMinc = fonte === 'minc';
+  document.getElementById('proacSection').style.display = isMinc ? 'none' : 'block';
+  document.getElementById('mincSection').style.display  = isMinc ? 'block' : 'none';
+  document.getElementById('tabProac').classList.toggle('active', !isMinc);
+  document.getElementById('tabMinc').classList.toggle('active', isMinc);
+  document.getElementById('sidebar').style.display = isMinc ? 'none' : '';
+  if (isMinc) {
+    inicializarMinc();
+  }
+}
+
+function inicializarMinc() {
+  // Popular filtro UF
+  const ufs = [...new Set(MINC_LEADS.map(l => l.uf))].sort();
+  const sel = document.getElementById('mincFiltroUF');
+  if (sel.options.length <= 1) {
+    ufs.forEach(uf => {
+      const o = document.createElement('option');
+      o.value = uf; o.textContent = uf;
+      sel.appendChild(o);
+    });
+  }
+  // Carrega CRM do Supabase
+  carregarMincCRM();
+  renderMinc();
+}
+
+async function carregarMincCRM() {
+  try {
+    const { data, error } = await supa.from('minc_leads').select('id,status_crm,responsavel,obs');
+    if (error) throw error;
+    mincCRM = {};
+    for (const r of (data || [])) {
+      mincCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '' };
+    }
+    // Se não tem registros no banco, faz upsert inicial
+    if (!data || data.length === 0) {
+      await sincronizarMincSupabase();
+    }
+    renderMinc();
+  } catch(e) { console.warn('MinC CRM load:', e.message); }
+}
+
+async function sincronizarMincSupabase() {
+  try {
+    const rows = MINC_LEADS.map(l => ({
+      id: l.id, obra: l.obra, empresa: l.empresa, municipio: l.municipio,
+      uf: l.uf, modulo: l.modulo, valor: l.valor, regiao: l.regiao,
+      situacao: l.situacao, status_crm: 'nao', responsavel: '', obs: ''
+    }));
+    for (let i = 0; i < rows.length; i += 50) {
+      await supa.from('minc_leads').upsert(rows.slice(i, i+50), { onConflict: 'id', ignoreDuplicates: true });
+    }
+    log('MinC: 162 projetos sincronizados no Supabase ✓', 'ok');
+    setTimeout(clearLog, 3000);
+  } catch(e) { console.warn('MinC sync:', e.message); }
+}
+
+async function atualizarMincCRM(id, campo, valor) {
+  if (!mincCRM[id]) mincCRM[id] = { status: 'nao', responsavel: '', obs: '' };
+  mincCRM[id][campo] = valor;
+  try {
+    const update = { updated_at: new Date().toISOString() };
+    if (campo === 'status') update.status_crm = valor;
+    else update[campo] = valor;
+    await supa.from('minc_leads').upsert({ id, ...update }, { onConflict: 'id' });
+  } catch(e) { console.warn('MinC CRM save:', e.message); }
+}
+
+function getMincFiltrados() {
+  const busca = (document.getElementById('mincBusca')?.value || '').toLowerCase();
+  const uf    = document.getElementById('mincFiltroUF')?.value || '';
+  const mod   = document.getElementById('mincFiltroModulo')?.value || '';
+  const crm   = document.getElementById('mincFiltroCRM')?.value || '';
+  return MINC_LEADS.filter(l => {
+    if (busca && !l.obra.toLowerCase().includes(busca) && !l.empresa.toLowerCase().includes(busca)) return false;
+    if (uf  && l.uf !== uf) return false;
+    if (mod && l.modulo !== mod) return false;
+    if (crm && (mincCRM[l.id]?.status || 'nao') !== crm) return false;
+    return true;
+  });
+}
+
+function renderMinc() {
+  const filtrados = getMincFiltrados();
+  const total = filtrados.length;
+  const totalPags = Math.ceil(total / MINC_POR_PAG);
+  if (mincPag >= totalPags) mincPag = Math.max(0, totalPags - 1);
+  const pagina = filtrados.slice(mincPag * MINC_POR_PAG, (mincPag + 1) * MINC_POR_PAG);
+
+  // Stats
+  const valorTotal = filtrados.reduce((s, l) => s + l.valor, 0);
+  const ufsUnicas = new Set(filtrados.map(l => l.uf)).size;
+  document.getElementById('mincTotalFiltrado').textContent = total;
+  document.getElementById('mincValorTotal').textContent = 'R$ ' + (valorTotal/1e6).toFixed(1) + 'M';
+  document.getElementById('mincUFCount').textContent = ufsUnicas;
+  document.getElementById('mincPagInfo').textContent = `${mincPag*MINC_POR_PAG+1}–${Math.min((mincPag+1)*MINC_POR_PAG,total)} de ${total} projetos`;
+  document.getElementById('mincBtnPrev').disabled = mincPag === 0;
+  document.getElementById('mincBtnNext').disabled = mincPag >= totalPags - 1;
+
+  const tbody = document.getElementById('mincTbody');
+  tbody.innerHTML = pagina.map((l, i) => {
+    const crm = mincCRM[l.id] || { status: 'nao' };
+    const sit = l.situacao.toLowerCase().includes('cota') ? 'cota' : 'sel';
+    const cor = CRM_STATUS_CORES[crm.status] || 'var(--text3)';
+    return `<tr>
+      <td style="color:var(--text4);font-family:var(--cond)">${mincPag*MINC_POR_PAG+i+1}</td>
+      <td>
+        <div class="minc-obra">${l.obra}</div>
+        <div class="minc-empresa">${l.empresa}</div>
+      </td>
+      <td style="font-size:11px;color:var(--text3)">${l.municipio}</td>
+      <td style="font-family:var(--cond);font-size:11px;font-weight:700;color:var(--text3)">${l.uf}</td>
+      <td><span class="minc-modulo-badge">${l.modulo}</span></td>
+      <td style="font-family:var(--cond);font-size:12px;font-weight:700;white-space:nowrap">${formatValor(l.valor)}</td>
+      <td><span class="minc-sit-badge ${sit}">${l.situacao.replace('Selecionada ','').replace('Selecionada','✓')}</span></td>
+      <td>
+        <select class="crm-select s-${crm.status}" onchange="atualizarMincCRM('${l.id}','status',this.value);this.className='crm-select s-'+this.value" style="font-size:11px;padding:3px 6px">
+          ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <button onclick="abrirProjModalMinc('${l.id}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function mincPagina(dir) {
+  const total = getMincFiltrados().length;
+  const totalPags = Math.ceil(total / MINC_POR_PAG);
+  mincPag = Math.max(0, Math.min(mincPag + dir, totalPags - 1));
+  renderMinc();
+}
+
+function abrirProjModalMinc(id) {
+  const l = MINC_LEADS.find(x => x.id === id);
+  if (!l) return;
+  // Adapta para o modal existente
+  projAtual = {
+    id: l.id, projeto: l.obra, proponente: l.empresa,
+    municipio: l.municipio, tipoPessoa: 'PJ', segmento: 'Audiovisual — Comercialização em Cinema',
+    valor: l.valor, anoEdital: '2025', programa: 'MinC Nº 6/2025',
+    status: 'SELECTED', inscricao: l.id, aprovacao: '', acessInfo: '',
+    _detalhes: { resumo: '', descricao: `Edital MinC Nº 6/2025 — Comercialização em Cinema. Módulo: ${l.modulo}. Região: ${l.regiao || 'Sudeste'}.`, objetivos: '', locaisTexto: `${l.municipio}, ${l.uf}` }
+  };
+
+  // Preenche modal
+  document.getElementById('pmBadgeProg').textContent = 'MinC Nº6';
+  document.getElementById('pmBadgeProg').style.cssText = 'background:#ede9fe;color:#7c3aed;border:1px solid rgba(124,58,237,0.25)';
+  document.getElementById('pmBadgeTipo').textContent = '🎬 Comercialização Cinema';
+  document.getElementById('pmBadgeTipo').style.display = '';
+  document.getElementById('pmBadgeStatus').textContent = 'Selecionado';
+  document.getElementById('pmBadgeStatus').style.cssText = 'background:#ecfdf5;color:#059669;border:1px solid rgba(5,150,105,0.2)';
+  document.getElementById('pmTitulo').textContent = l.obra;
+  document.getElementById('pmProponente').textContent = '👤 ' + l.empresa;
+  document.getElementById('pmMunicipio').textContent = '📍 ' + l.municipio + ', ' + l.uf;
+  document.getElementById('pmInscricao').textContent = '📦 ' + l.modulo;
+  document.getElementById('pmValor').textContent = formatValor(l.valor);
+  document.getElementById('pmData').textContent = 'Out/2025';
+  document.getElementById('pmAno').textContent = '2025';
+  document.getElementById('pmTipoPessoa').textContent = 'Empresa';
+  document.getElementById('pmSegmento').textContent = 'Comercialização em Cinema';
+  document.getElementById('pmStatusApi').textContent = l.situacao;
+  document.getElementById('pmAcessBloco').style.display = 'none';
+  document.getElementById('pmDescBloco').style.display = '';
+  document.getElementById('pmDesc').innerHTML = `<div class="proj-section-title">Informações do Edital</div><div class="proj-desc-box">${l.situacao} · ${l.modulo} · ${l.regiao || 'Sem cota regional'}<br><br>Edital de Chamamento Público MinC Nº 6, de 13 de agosto de 2025 — Comercialização em Cinema.<br>Ministério da Cultura · Secretaria do Audiovisual.</div>`;
+
+  // Reset pitch
+  document.getElementById('pitchContent').innerHTML = '<span class="pitch-empty">Clique em "Gerar pitch" para criar uma abordagem comercial personalizada para este projeto.</span>';
+  document.getElementById('btnCopyPitch').disabled = true;
+  document.getElementById('btnGerarPitch').disabled = false;
+  document.getElementById('btnGerarPitch').textContent = '✦ Gerar pitch';
+  document.getElementById('moskitSyncResult').textContent = '';
+  const moskitKey = localStorage.getItem('etc_moskit_key') || '';
+  document.getElementById('btnEnviarMoskit').disabled = !moskitKey;
+
+  document.getElementById('projOverlay').classList.add('open');
+}
 const ul=localStorage.getItem('etc_ultima');
 if(ul){document.getElementById('ultimaAtualizacao').textContent='Atualizado '+ul;document.getElementById('livePill').className='live-pill';document.getElementById('livePill').textContent='Dados locais';}
 renderTabela();
@@ -1831,7 +2163,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharModalDireto()
 <script>
 // ── AUTENTICAÇÃO ──
 // Para alterar a senha, mude o valor abaixo e suba o arquivo novamente
-const SENHA_ACESSO = 'EtcFilmes#2026';
+const SENHA_ACESSO = 'etcfilmes2025';
 const AUTH_KEY = 'etc_auth_v1';
 
 function tentarLogin() {
