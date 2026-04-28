@@ -611,6 +611,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         <button class="source-tab active" id="tabProac" onclick="trocarFonte('proac')">ProAC SP</button>
         <button class="source-tab" id="tabMinc" onclick="trocarFonte('minc')">MinC Nº6</button>
         <button class="source-tab" id="tabFederal" onclick="trocarFonte('federal')">🇧🇷 Federal</button>
+        <button class="source-tab" id="tabSalic" onclick="trocarFonte('salic')">📜 Rouanet</button>
       </nav>
     </div>
     <div class="topbar-right">
@@ -943,6 +944,95 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ── SEÇÃO SALIC / ROUANET ── -->
+<div id="salicSection" style="display:none;position:fixed;inset:0 0 0 0;padding-top:56px;overflow-y:auto;background:var(--bg);z-index:10">
+  <div style="padding:20px 24px;max-width:1400px;margin:0 auto">
+
+    <div class="minc-header-bar" style="background:linear-gradient(135deg,#1a0533 0%,#2d1b4e 50%,#1a0533 100%)">
+      <div class="minc-badge">
+        <div class="minc-badge-icon">📜</div>
+        <div class="minc-badge-text">
+          <h3>Lei Rouanet — SALIC · Projetos com Acessibilidade</h3>
+          <p>Projetos culturais com Libras, Audiodescrição ou Legenda/CC declarados · Busca em tempo real</p>
+        </div>
+      </div>
+      <div class="minc-stats">
+        <div class="minc-stat"><div class="val" id="salicTotal" style="color:#c084fc">—</div><div class="lbl">Encontrados</div></div>
+        <div class="minc-stat"><div class="val" id="salicPagAtual" style="color:#c084fc">—</div><div class="lbl">Página</div></div>
+        <div class="minc-stat"><div class="val" id="salicValorTotal" style="color:#c084fc">—</div><div class="lbl">Valor total</div></div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="minc-filters">
+      <select class="minc-filter-select" id="salicAno" onchange="salicBuscar()">
+        <option value="25">2025</option>
+        <option value="24">2024</option>
+        <option value="23">2023</option>
+      </select>
+      <select class="minc-filter-select" id="salicUF" onchange="salicBuscar()">
+        <option value="">Todos os estados</option>
+        <option>AC</option><option>AL</option><option>AM</option><option>AP</option>
+        <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+        <option>GO</option><option>MA</option><option>MG</option><option>MS</option>
+        <option>MT</option><option>PA</option><option>PB</option><option>PE</option>
+        <option>PI</option><option>PR</option><option>RJ</option><option>RN</option>
+        <option>RO</option><option>RR</option><option>RS</option><option>SC</option>
+        <option>SE</option><option>SP</option><option>TO</option>
+      </select>
+      <select class="minc-filter-select" id="salicSrv" onchange="salicBuscar()">
+        <option value="">Todos os serviços</option>
+        <option value="libras">Libras</option>
+        <option value="audiodescrição">Audiodescrição</option>
+        <option value="legenda">Legenda/CC</option>
+      </select>
+      <select class="minc-filter-select" id="salicSituacao" onchange="salicBuscar()">
+        <option value="">Todas as situações</option>
+        <option value="Autorizada a captação total dos recursos">Captação autorizada</option>
+        <option value="Em análise">Em análise</option>
+      </select>
+      <input class="minc-filter-input" id="salicBusca" placeholder="🔍  Buscar nome ou proponente..." style="flex:1;min-width:180px" oninput="salicBuscarDebounce()">
+      <button class="btn-sm primary" onclick="salicBuscar()" id="salicBtnBuscar">🔍 Buscar</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="salicLoading" style="display:none;text-align:center;padding:40px;color:var(--text3)">
+      <div class="pitch-dots" style="justify-content:center;display:flex;margin-bottom:12px"><span></span><span></span><span></span></div>
+      <div style="font-family:var(--cond);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase">Buscando na API do SALIC...</div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="minc-table-wrap" id="salicTableWrap">
+      <table class="minc-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Projeto / Proponente</th>
+            <th>Acessibilidade declarada</th>
+            <th>UF</th>
+            <th>Segmento</th>
+            <th>Valor aprovado</th>
+            <th>Vigência</th>
+            <th>CRM</th>
+            <th style="width:32px"></th>
+          </tr>
+        </thead>
+        <tbody id="salicTbody">
+          <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text4);font-style:italic">Selecione os filtros e clique em Buscar para carregar os projetos</td></tr>
+        </tbody>
+      </table>
+      <div class="minc-pagination">
+        <span id="salicPagInfo">—</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn-cancel" id="salicBtnPrev" onclick="salicNavegar(-1)" disabled>← Anterior</button>
+          <button class="btn-cancel" id="salicBtnNext" onclick="salicNavegar(1)" disabled>Próxima →</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1981,6 +2071,211 @@ function atualizarMoskitBtn() {
 }
 atualizarMoskitBtn();
 
+// ── SALIC / ROUANET LOGIC ──
+const SALIC_PROXY = 'https://etc-filmes-proxy.vercel.app/api/salic';
+const SALIC_LIMIT = 20;
+let salicOffset = 0;
+let salicTotalAPI = 0;
+let salicResultados = [];
+let salicCRM = {};
+let salicDebounceTimer = null;
+
+function inicializarSalic() {
+  carregarSalicCRM();
+}
+
+async function carregarSalicCRM() {
+  try {
+    const { data } = await supa.from('salic_leads').select('id,status_crm,responsavel');
+    salicCRM = {};
+    for (const r of (data || [])) salicCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '' };
+  } catch(e) { console.warn('SALIC CRM:', e.message); }
+}
+
+async function atualizarSalicCRM(id, nome, proponente, valor, uf, segmento, campo, valor2) {
+  if (!salicCRM[id]) salicCRM[id] = { status: 'nao', responsavel: '' };
+  salicCRM[id][campo] = valor2;
+  try {
+    await supa.from('salic_leads').upsert({
+      id, nome, proponente, valor: valor||0, uf, segmento,
+      status_crm: salicCRM[id].status, responsavel: salicCRM[id].responsavel || '',
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  } catch(e) { console.warn('SALIC CRM save:', e.message); }
+}
+
+function salicBuscarDebounce() {
+  clearTimeout(salicDebounceTimer);
+  salicDebounceTimer = setTimeout(() => salicBuscar(true), 600);
+}
+
+async function salicBuscar(resetOffset = true) {
+  if (resetOffset) salicOffset = 0;
+  const ano   = document.getElementById('salicAno').value;
+  const uf    = document.getElementById('salicUF').value;
+  const srv   = document.getElementById('salicSrv').value;
+  const sit   = document.getElementById('salicSituacao').value;
+  const busca = document.getElementById('salicBusca').value.trim();
+
+  const params = new URLSearchParams({ ano_projeto: ano, limit: SALIC_LIMIT, offset: salicOffset });
+  if (uf)  params.set('UF', uf);
+  if (sit) params.set('situacao', sit);
+
+  document.getElementById('salicLoading').style.display = 'block';
+  document.getElementById('salicTableWrap').style.opacity = '0.4';
+  document.getElementById('salicBtnBuscar').disabled = true;
+
+  try {
+    const resp = await fetch(`${SALIC_PROXY}?${params}`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    let projetos = data._embedded?.projetos || [];
+    salicTotalAPI = data.total || 0;
+
+    const TERMOS = ['libras','audiodescrição','audiodescricao','legenda','closed caption','língua brasileira'];
+    const filtroSrv = srv.toLowerCase();
+
+    projetos = projetos.filter(p => {
+      const a = (p.acessibilidade||'').toLowerCase();
+      if (!a || a.length < 10) return false;
+      if (filtroSrv && !a.includes(filtroSrv)) return false;
+      if (!filtroSrv && !TERMOS.some(t => a.includes(t))) return false;
+      if (busca) {
+        const b = busca.toLowerCase();
+        if (!p.nome.toLowerCase().includes(b) && !(p.proponente||'').toLowerCase().includes(b)) return false;
+      }
+      return true;
+    });
+
+    salicResultados = projetos;
+    renderSalic();
+
+    const vt = projetos.reduce((s,p) => s+(p.valor_aprovado||0), 0);
+    document.getElementById('salicTotal').textContent = salicTotalAPI.toLocaleString('pt-BR');
+    document.getElementById('salicPagAtual').textContent = `Pág. ${Math.floor(salicOffset/SALIC_LIMIT)+1}`;
+    document.getElementById('salicValorTotal').textContent = vt > 0 ? 'R$ '+(vt/1e6).toFixed(1)+'M' : '—';
+    document.getElementById('salicBtnPrev').disabled = salicOffset === 0;
+    document.getElementById('salicBtnNext').disabled = salicOffset + SALIC_LIMIT >= salicTotalAPI;
+    document.getElementById('salicPagInfo').textContent = `${projetos.length} projetos c/ acessibilidade nessa página · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`;
+
+  } catch(e) {
+    document.getElementById('salicTbody').innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--red)">Erro: ${e.message}</td></tr>`;
+  } finally {
+    document.getElementById('salicLoading').style.display = 'none';
+    document.getElementById('salicTableWrap').style.opacity = '1';
+    document.getElementById('salicBtnBuscar').disabled = false;
+  }
+}
+
+function salicNavegar(dir) {
+  salicOffset = Math.max(0, salicOffset + dir * SALIC_LIMIT);
+  salicBuscar(false);
+}
+
+function renderSalic() {
+  const tbody = document.getElementById('salicTbody');
+  if (!salicResultados.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto com acessibilidade nessa página — clique em "Próxima" para continuar.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = salicResultados.map((p, i) => {
+    const crm  = salicCRM[p.PRONAC] || { status: 'nao' };
+    const a    = (p.acessibilidade||'').toLowerCase();
+    const tags = [
+      /libras|língua brasileira/i.test(a) ? '<span style="background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:3px;font-size:10px;font-family:var(--cond);font-weight:700">Libras</span>' : '',
+      /audiodescri/i.test(a)              ? '<span style="background:#f5f3ff;color:#7c3aed;padding:2px 7px;border-radius:3px;font-size:10px;font-family:var(--cond);font-weight:700">AD</span>' : '',
+      /legenda|closed caption/i.test(a)   ? '<span style="background:#fffbeb;color:#d97706;padding:2px 7px;border-radius:3px;font-size:10px;font-family:var(--cond);font-weight:700">CC</span>' : '',
+    ].filter(Boolean).join('');
+    const vig = p.data_termino ? (() => {
+      const diff = Math.round((new Date(p.data_termino) - new Date()) / 86400000);
+      if (diff < 0) return `<span style="color:var(--red);font-size:11px">Vencido</span>`;
+      if (diff < 180) return `<span style="color:var(--orange);font-size:11px">${p.data_termino}</span>`;
+      return `<span style="color:var(--green);font-size:11px">${p.data_termino}</span>`;
+    })() : '—';
+    const nomeEsc = (p.nome||'').replace(/'/g,"'");
+    const propEsc = (p.proponente||'').replace(/'/g,"'").substring(0,50);
+    const segEsc  = (p.segmento||'').replace(/'/g,"'").substring(0,40);
+    return `<tr>
+      <td style="color:var(--text4);font-family:var(--cond)">${salicOffset+i+1}</td>
+      <td style="max-width:280px">
+        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchSalic('${p.PRONAC}')">${p.nome}</div>
+        <div class="minc-empresa">${p.proponente||''} · ${p.cgccpf||''}</div>
+        <div style="font-size:10px;color:var(--text4)">${p.tipologia||''}</div>
+      </td>
+      <td style="max-width:240px">
+        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px">${tags}</div>
+        <div style="font-size:11px;color:var(--text3);line-height:1.4;max-height:44px;overflow:hidden">${(p.acessibilidade||'').substring(0,110)}...</div>
+      </td>
+      <td style="font-family:var(--cond);font-size:11px;font-weight:700">${p.UF||'—'}</td>
+      <td style="font-size:11px;color:var(--text3);max-width:110px">${p.segmento||'—'}</td>
+      <td style="font-family:var(--cond);font-size:12px;font-weight:700;color:var(--green);white-space:nowrap">${p.valor_aprovado?'R$ '+Number(p.valor_aprovado).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):'—'}</td>
+      <td>${vig}</td>
+      <td>
+        <select class="crm-select s-${crm.status}" onchange="atualizarSalicCRM('${p.PRONAC}','${nomeEsc.substring(0,50)}','${propEsc}',${p.valor_aprovado||0},'${p.UF||''}','${segEsc}','status',this.value);this.className='crm-select s-'+this.value" style="font-size:11px;padding:3px 6px">
+          ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td><button onclick="abrirPitchSalic('${p.PRONAC}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer">✦</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function abrirPitchSalic(pronac) {
+  const p = salicResultados.find(x => x.PRONAC === pronac);
+  if (!p) return;
+  const acess = p.acessibilidade || '';
+  const tags = [];
+  if (/libras|língua brasileira/i.test(acess)) tags.push('Libras');
+  if (/audiodescri/i.test(acess)) tags.push('Audiodescrição');
+  if (/legenda|closed caption/i.test(acess)) tags.push('Legenda/CC');
+
+  projAtual = {
+    id: p.PRONAC, projeto: p.nome, proponente: p.proponente||'',
+    municipio: p.municipio||'', tipoPessoa:'PJ', segmento: p.segmento||'Cultura',
+    valor: p.valor_aprovado||0, anoEdital: p.ano_projeto||'25',
+    programa: 'Lei Rouanet — SALIC', status:'SELECTED',
+    inscricao:`PRONAC ${p.PRONAC}`, aprovacao: p.data_inicio||'',
+    acessInfo: tags.join(', '),
+    _detalhes: { resumo: p.resumo||p.sinopse||'', descricao: p.objetivos||'', objetivos:'',
+      locaisTexto:`${p.municipio||''}, ${p.UF||''}`, dtInicio:p.data_inicio, dtFim:p.data_termino }
+  };
+  document.getElementById('pmBadgeProg').textContent = 'Lei Rouanet';
+  document.getElementById('pmBadgeProg').style.cssText = 'background:#f5f3ff;color:#7c3aed;border:1px solid rgba(124,58,237,0.25)';
+  document.getElementById('pmBadgeTipo').textContent = '📜 '+(p.tipologia||'SALIC');
+  document.getElementById('pmBadgeTipo').style.display='';
+  document.getElementById('pmBadgeStatus').textContent=(p.situacao||'').substring(0,30);
+  document.getElementById('pmBadgeStatus').style.cssText='background:#ecfdf5;color:#059669;border:1px solid rgba(5,150,105,0.2)';
+  document.getElementById('pmTitulo').textContent=p.nome;
+  document.getElementById('pmProponente').textContent='👤 '+(p.proponente||'');
+  document.getElementById('pmMunicipio').textContent='📍 '+(p.municipio||'')+', '+(p.UF||'');
+  document.getElementById('pmInscricao').textContent='🔢 PRONAC '+p.PRONAC;
+  document.getElementById('pmValor').textContent=p.valor_aprovado?'R$ '+Number(p.valor_aprovado).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}):'—';
+  document.getElementById('pmData').textContent=p.data_inicio||'—';
+  const anoCard=document.getElementById('pmAno');
+  anoCard.closest('.proj-info-card').querySelector('.label').textContent='Fim';
+  anoCard.textContent=p.data_termino||'—';
+  document.getElementById('pmTipoPessoa').textContent='Pessoa Jurídica';
+  document.getElementById('pmSegmento').textContent=p.segmento||'—';
+  document.getElementById('pmStatusApi').textContent=p.situacao||'—';
+  if (tags.length) {
+    document.getElementById('pmAcessBloco').style.display='';
+    document.getElementById('pmAcessTags').innerHTML=tags.map(t=>`<span style="background:#f5f3ff;color:#7c3aed;border:1px solid rgba(124,58,237,0.25);padding:3px 10px;border-radius:4px;font-size:11px;font-family:var(--cond);font-weight:700;text-transform:uppercase">${t}</span>`).join('');
+  } else { document.getElementById('pmAcessBloco').style.display='none'; }
+  document.getElementById('pmDescBloco').style.display='';
+  document.getElementById('pmDesc').innerHTML=`
+    <div class="proj-section-title">Acessibilidade declarada pelo proponente</div>
+    <div class="proj-desc-box" style="max-height:180px;background:#faf5ff;border:1px solid rgba(124,58,237,0.15)">${acess||'—'}</div>
+    ${p.resumo?`<div class="proj-section-title" style="margin-top:14px">Resumo</div><div class="proj-desc-box">${p.resumo}</div>`:''}`;
+  document.getElementById('pitchContent').innerHTML='<span class="pitch-empty">Clique em "Gerar pitch" para criar uma abordagem comercial personalizada.</span>';
+  document.getElementById('btnCopyPitch').disabled=true;
+  document.getElementById('btnGerarPitch').disabled=false;
+  document.getElementById('btnGerarPitch').textContent='✦ Gerar pitch';
+  document.getElementById('moskitSyncResult').textContent='';
+  document.getElementById('btnEnviarMoskit').disabled=!localStorage.getItem('etc_moskit_key');
+  document.getElementById('projOverlay').classList.add('open');
+}
+
 async function carregarLeadsSupabase() {
   try {
     // Busca em páginas de 1000 (limite do Supabase por request)
@@ -2273,15 +2568,19 @@ function trocarFonte(fonte) {
   const isMinc    = fonte === 'minc';
   const isFederal = fonte === 'federal';
   const isProac   = fonte === 'proac';
-  document.getElementById('proacSection').style.display   = isProac   ? 'block' : 'none';
-  document.getElementById('mincSection').style.display    = isMinc    ? 'block' : 'none';
-  document.getElementById('federalSection').style.display = isFederal ? 'block' : 'none';
+  const isSalic   = fonte === 'salic';
+  document.getElementById('proacSection').style.display    = isProac   ? 'block' : 'none';
+  document.getElementById('mincSection').style.display     = isMinc    ? 'block' : 'none';
+  document.getElementById('federalSection').style.display  = isFederal ? 'block' : 'none';
+  document.getElementById('salicSection').style.display    = isSalic   ? 'block' : 'none';
   document.getElementById('tabProac').classList.toggle('active', isProac);
   document.getElementById('tabMinc').classList.toggle('active', isMinc);
   document.getElementById('tabFederal').classList.toggle('active', isFederal);
+  document.getElementById('tabSalic').classList.toggle('active', isSalic);
   document.getElementById('sidebar').style.display = isProac ? '' : 'none';
   if (isMinc)    inicializarMinc();
   if (isFederal) inicializarFederal();
+  if (isSalic)   inicializarSalic();
 }
 
 function inicializarMinc() {
