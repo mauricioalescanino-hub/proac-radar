@@ -649,6 +649,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
           <option value="">Audiovisual + PNAB</option>
           <option value="audiovisual">Só audiovisual</option>
           <option value="pnab">Só PNAB acessibilidade</option>
+          <option value="festival">🎪 Festivais & Eventos</option>
         </select>
       </div>
       <div class="filter-group">
@@ -726,6 +727,11 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         <div class="metric-accent"></div>
         <div class="metric-label">PNAB acessib.</div>
         <div class="metric-val" style="color:#7c3aed" id="mPnab">—</div>
+      </div>
+      <div class="metric" style="--m-color:#d97706;cursor:pointer" onclick="document.getElementById('filtTipo').value='festival';resetPagina();renderTabela()" title="Clique para filtrar">
+        <div class="metric-accent"></div>
+        <div class="metric-label">🎪 Festivais/Eventos</div>
+        <div class="metric-val" style="color:#d97706" id="mFestival">—</div>
       </div>
       <div class="metric" style="--m-color:#f59e0b">
         <div class="metric-accent"></div>
@@ -1219,19 +1225,30 @@ async function iniciarColeta(){
   finally{setProgress(0);btn.disabled=false;icon.classList.remove('spin');}
 }
 
+const TERMOS_FESTIVAL=['festival','mostra','evento','ciranda','encontro','semana cultural','semana de','feira','celebração','celebracao','jornada','congresso','fórum','forum','simpósio','simposio','bienal','trienal','conferência','conferencia','sarau','ciclo','jam','expo ','exposição','exposicao','ocupação','ocupacao','abertura','temporada'];
+
+function isFestival(p){
+  const s=p.submission||{},n=p.notice||{},cats=s.categories||[];
+  const txt=[s.name||'',cats.join(' '),(n.title||'')].join(' ').toLowerCase();
+  return TERMOS_FESTIVAL.some(t=>txt.includes(t));
+}
+
 function norm(p,prog,tipo,ehNovo,acessInfo){
   const s=p.submission||{},n=p.notice||{},cats=s.categories||[];
-  return{id:p._id||'',novo:ehNovo,tipo,aprovacao:p.updatedAt||p.createdAt||'',programa:prog,projeto:s.name||'',inscricao:s.number||'',proponente:p.proponentName||'',tipoPessoa:p.personType==='LegalPerson'?'PJ':'PF',segmento:cats.length?cats.join(', '):(n.title||''),anoEdital:String(n.year||''),status:p.status||'',valor:p.projectValue||0,municipio:(p.proponentCity||'').replace(/-city$/i,'').trim(),acessInfo:acessInfo||''};
+  const festival=isFestival(p);
+  return{id:p._id||'',novo:ehNovo,tipo,festival,aprovacao:p.updatedAt||p.createdAt||'',programa:prog,projeto:s.name||'',inscricao:s.number||'',proponente:p.proponentName||'',tipoPessoa:p.personType==='LegalPerson'?'PJ':'PF',segmento:cats.length?cats.join(', '):(n.title||''),anoEdital:String(n.year||''),status:p.status||'',valor:p.projectValue||0,municipio:(p.proponentCity||'').replace(/-city$/i,'').trim(),acessInfo:acessInfo||''};
 }
 
 function atualizarMetrics(){
-  const avs=todosLeads.filter(l=>l.tipo==='audiovisual'),pnabs=todosLeads.filter(l=>l.tipo==='pnab'),novos=todosLeads.filter(l=>l.novo),vt=todosLeads.reduce((s,l)=>s+l.valor,0);
+  const avs=todosLeads.filter(l=>l.tipo==='audiovisual'),pnabs=todosLeads.filter(l=>l.tipo==='pnab'),novos=todosLeads.filter(l=>l.novo),festivais=todosLeads.filter(l=>l.festival),vt=todosLeads.reduce((s,l)=>s+l.valor,0);
   document.getElementById('mTotal').textContent=todosLeads.length.toLocaleString('pt-BR');
   document.getElementById('mAv').textContent=avs.length.toLocaleString('pt-BR');
   document.getElementById('mPnab').textContent=pnabs.length.toLocaleString('pt-BR');
   document.getElementById('mNovos').textContent=novos.length.toLocaleString('pt-BR');
   document.getElementById('mValor').textContent='R$\u00a0'+(vt/1e6).toFixed(1).replace('.',',')+'M';
   document.getElementById('totalLeads').textContent=todosLeads.length+' projetos';
+  const mFest=document.getElementById('mFestival');
+  if(mFest) mFest.textContent=festivais.length.toLocaleString('pt-BR');
 }
 
 function atualizarCRMStats(){
@@ -1283,6 +1300,7 @@ function getFiltrados(){
   if(busca)l=l.filter(x=>x.projeto.toLowerCase().includes(busca)||x.proponente.toLowerCase().includes(busca)||x.municipio.toLowerCase().includes(busca)||x.segmento.toLowerCase().includes(busca)||x.inscricao.toLowerCase().includes(busca));
   if(ftipo==='audiovisual')l=l.filter(x=>x.tipo==='audiovisual');
   if(ftipo==='pnab')l=l.filter(x=>x.tipo==='pnab');
+  if(ftipo==='festival')l=l.filter(x=>x.festival);
   if(fnovos==='novos')l=l.filter(x=>x.novo);
   if(fano)l=l.filter(x=>x.anoEdital===fano);
   if(fpessoa)l=l.filter(x=>x.tipoPessoa===fpessoa);
@@ -1321,6 +1339,7 @@ function renderTabela(){
     const sl={SELECTED:{t:'Aprovado',c:'#059669',bg:'#ecfdf5'},SURROGATE:{t:'Suplente',c:'#d97706',bg:'#fffbeb'},ICMS_ACCOUNTABILITY_CREATED:{t:'Prest. Contas',c:'#6b7280',bg:'#f9fafb'}}[l.status]||{t:l.status,c:'#6b7280',bg:'#f9fafb'};
     const novoTag=l.novo?`<span class="tag-novo">novo</span>`:'';
     const pnabTag=l.tipo==='pnab'?`<span class="tag-pnab" title="${l.acessInfo}">♿</span>`:'';
+    const festTag=l.festival?`<span style="background:#fef3c7;color:#d97706;border:1px solid rgba(217,119,6,0.25);border-radius:4px;font-size:9px;font-family:var(--cond);font-weight:700;padding:1px 5px;vertical-align:middle;margin-right:3px" title="Festival / Evento / Mostra">🎪</span>`:'';
     const crm=getCRM(l.id);
     const crmClass='crm-select s-'+crm.status;
     const temNota=!!(crm.obs||crm.proximoPasso||crm.responsavel);
@@ -1330,7 +1349,7 @@ function renderTabela(){
       <td class="td-data">${formatDate(l.aprovacao)}</td>
       <td><span class="prog-badge" style="background:${cor}18;color:${cor};border:1px solid ${cor}35">${label}</span></td>
       <td style="max-width:240px">
-        ${novoTag}${pnabTag}
+        ${novoTag}${festTag}${pnabTag}
         <div class="proj-name" style="cursor:pointer;color:var(--blue)" onclick="abrirProjModal('${l.id}')">${l.projeto}</div>
         <div class="proj-num">${l.inscricao}</div>
         <div class="prop-name" style="margin-top:3px">${l.proponente}</div>
@@ -1896,23 +1915,29 @@ async function carregarLeadsSupabase() {
     if (todos.length === 0) return false;
 
     // Mapeia colunas do banco para o formato interno
-    todosLeads = todos.map(r => ({
-      id:          r.id,
-      novo:        r.novo || false,
-      tipo:        r.tipo || 'audiovisual',
-      aprovacao:   r.aprovacao || '',
-      programa:    r.programa || '',
-      projeto:     r.projeto || '',
-      inscricao:   r.inscricao || '',
-      proponente:  r.proponente || '',
-      tipoPessoa:  r.tipo_pessoa || '',
-      segmento:    r.segmento || '',
-      anoEdital:   r.ano_edital || '',
-      status:      r.status || '',
-      valor:       r.valor || 0,
-      municipio:   r.municipio || '',
-      acessInfo:   r.acess_info || ''
-    }));
+    todosLeads = todos.map(r => {
+      const proj = (r.projeto||'').toLowerCase();
+      const seg  = (r.segmento||'').toLowerCase();
+      const festival = TERMOS_FESTIVAL.some(t => proj.includes(t) || seg.includes(t));
+      return {
+        id:          r.id,
+        novo:        r.novo || false,
+        tipo:        r.tipo || 'audiovisual',
+        festival,
+        aprovacao:   r.aprovacao || '',
+        programa:    r.programa || '',
+        projeto:     r.projeto || '',
+        inscricao:   r.inscricao || '',
+        proponente:  r.proponente || '',
+        tipoPessoa:  r.tipo_pessoa || '',
+        segmento:    r.segmento || '',
+        anoEdital:   r.ano_edital || '',
+        status:      r.status || '',
+        valor:       r.valor || 0,
+        municipio:   r.municipio || '',
+        acessInfo:   r.acess_info || ''
+      };
+    });
 
     // Atualiza IDs vistos
     idsVistos = new Set(todosLeads.map(l => l.id));
