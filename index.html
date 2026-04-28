@@ -776,6 +776,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
               <th onclick="sortBy('valor')" id="th-valor">Valor</th>
               <th>Status API</th>
               <th>Prospecção CRM</th>
+              <th>Responsável</th>
               <th>Notas</th>
             </tr>
           </thead>
@@ -850,6 +851,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
             <th>Valor</th>
             <th>Situação</th>
             <th>CRM</th>
+            <th>Responsável</th>
             <th style="width:32px"></th>
           </tr>
         </thead>
@@ -1021,6 +1023,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
             <th>Valor aprovado</th>
             <th>Vigência</th>
             <th>CRM</th>
+            <th>Responsável</th>
             <th style="width:32px"></th>
           </tr>
         </thead>
@@ -1105,6 +1108,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
             <th>Valor contrato</th>
             <th>Valor liberado</th>
             <th>CRM</th>
+            <th>Responsável</th>
             <th style="width:32px"></th>
           </tr>
         </thead>
@@ -1333,6 +1337,8 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const CRM_STATUS_LABELS={nao:'Não contatado',contato:'Em contato',proposta:'Proposta enviada',negociando:'Negociando',fechado:'Fechado ✓',descartado:'Descartado'};
 const CRM_STATUS_CORES={nao:'var(--text3)',contato:'var(--blue)',proposta:'var(--purple)',negociando:'var(--orange)',fechado:'var(--green)',descartado:'var(--text4)'};
+const RESPONSAVEIS = ['','Daniela','Fabriccio','Mauricio','Renato','Hunter','Marketing'];
+const RESP_CORES = {'Daniela':'#7c3aed','Fabriccio':'#0891b2','Mauricio':'#059669','Renato':'#d97706','Hunter':'#dc2626','Marketing':'#6366f1'};;
 
 let todosLeads=[],idsVistos=new Set(JSON.parse(localStorage.getItem(IDS_KEY)||'[]'));
 let crmData={};
@@ -1437,6 +1443,15 @@ function formatDate(s){if(!s)return'—';try{return new Date(s).toLocaleDateStri
 function formatValor(v){if(!v)return'—';return'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
 function getCRM(id){return crmData[id]||{status:'nao',responsavel:'',dataContato:'',proximoPasso:'',obs:''};}
 
+function renderRespSelect(resp, onchangeJs) {
+  const cor = RESP_CORES[resp] || 'var(--text4)';
+  const style = resp
+    ? `color:${cor};border-color:${cor}33;background:${cor}11;font-weight:700`
+    : 'color:var(--text4)';
+  return `<select class="crm-select" onchange="${onchangeJs}" style="font-size:11px;padding:3px 6px;min-width:100px;${style}">
+    ${RESPONSAVEIS.map(r => `<option value="${r}"${r===resp?' selected':''}>${r||'— resp.'}</option>`).join('')}
+  </select>`;
+}
 
 function log(msg,tipo='prog'){const el=document.getElementById('logLines'),w=document.getElementById('logWrap');w.classList.add('visible');const d=document.createElement('div');d.className='log-line '+tipo;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
 function clearLog(){document.getElementById('logLines').innerHTML='';document.getElementById('logWrap').classList.remove('visible');}
@@ -1589,7 +1604,7 @@ function renderTabela(){
     return;
   }
   if(lista.length===0){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><p>Nenhum projeto com os filtros selecionados.</p></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><p>Nenhum projeto com os filtros selecionados.</p></div></td></tr>`;
     document.getElementById('tabelaInfo').innerHTML='<strong>0</strong> projetos';
     document.getElementById('paginfoLabel').textContent='0 projetos';
     document.getElementById('btnPrev').disabled=document.getElementById('btnNext').disabled=true;
@@ -1628,9 +1643,9 @@ function renderTabela(){
           <option value="fechado" ${crm.status==='fechado'?'selected':''}>Fechado ✓</option>
           <option value="descartado" ${crm.status==='descartado'?'selected':''}>Descartado</option>
         </select>
-        ${crm.responsavel?`<div style="font-size:10px;color:var(--text3);margin-top:3px">👤 ${crm.responsavel}</div>`:''}
         ${crm.dataContato?`<div style="font-size:10px;color:var(--text4);margin-top:1px">📅 ${crm.dataContato}</div>`:''}
       </td>
+      <td>${renderRespSelect(crm.responsavel, `atualizarRespProac('${l.id}',this.value)`)}</td>
       <td>
         <button class="btn-nota ${temNota?'tem-nota':''}" onclick="abrirModal('${l.id}')" title="${temNota?'Ver/editar notas':'Adicionar notas'}">
           ${temNota?'📝 Ver nota':'+ Nota'}
@@ -1657,6 +1672,12 @@ function atualizarStatus(id,val,sel){
   tr.className='';
   const nc=getCRMRowClass(id);
   if(nc)tr.classList.add(nc);
+}
+
+function atualizarRespProac(id, resp) {
+  if(!crmData[id]) crmData[id] = {};
+  crmData[id].responsavel = resp;
+  saveCRM(id, crmData[id]);
 }
 
 function abrirModal(id){
@@ -2325,6 +2346,7 @@ function renderSalic() {
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
       </td>
+      <td>${renderRespSelect(crm.responsavel, `atualizarSalicCRM('${p.PRONAC}','${nomeEsc.substring(0,50)}','${propEsc}',${p.valor_aprovado||0},'${p.UF||''}','${segEsc}','responsavel',this.value)`)}</td>
       <td><button onclick="abrirPitchSalic('${p.PRONAC}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer">✦</button></td>
     </tr>`;
   }).join('');
@@ -2588,6 +2610,7 @@ function renderFederal() {
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
       </td>
+      <td>${renderRespSelect(crm.responsavel, `atualizarFedCRM('${l.id}','responsavel',this.value)`)}</td>
       <td>
         <button onclick="abrirPitchFederal('${l.id}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button>
       </td>
@@ -2808,6 +2831,7 @@ function renderMinc() {
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
       </td>
+      <td>${renderRespSelect(crm.responsavel, `atualizarMincCRM('${l.id}','responsavel',this.value)`)}</td>
       <td>
         <button onclick="abrirProjModalMinc('${l.id}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button>
       </td>
@@ -3071,6 +3095,7 @@ function renderFsa() {
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
       </td>
+      <td>${renderRespSelect(crm.responsavel, `atualizarFsaCRM('${idEsc}','${titEsc}','${proEsc}',${p.valor_contrato||0},'${chaEsc}','responsavel',this.value)`)}</td>
       <td><button onclick="abrirPitchFsa('${idEsc}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button></td>
     </tr>`;
   }).join('');
