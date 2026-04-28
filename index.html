@@ -635,163 +635,124 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
     </div>
   </header>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">Busca</div>
-      <div class="filter-group">
-        <input type="text" id="busca" placeholder="Projeto, proponente, cidade..." oninput="resetPagina();renderTabela()">
-      </div>
-    </div>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Filtros</div>
-      <div class="filter-group">
-        <label>Tipo de lead</label>
-        <select id="filtTipo" onchange="resetPagina();renderTabela()">
-          <option value="">Audiovisual + PNAB</option>
-          <option value="audiovisual">Só audiovisual</option>
-          <option value="pnab">Só PNAB acessibilidade</option>
-          <option value="festival">🎪 Festivais & Eventos</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Novidades</label>
-        <select id="filtNovos" onchange="resetPagina();renderTabela()">
-          <option value="">Todos os projetos</option>
-          <option value="novos">Somente novos</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Status CRM</label>
-        <select id="filtCRM" onchange="resetPagina();renderTabela()">
-          <option value="">Todos os status</option>
-          <option value="nao">Não contatado</option>
-          <option value="contato">Em contato</option>
-          <option value="proposta">Proposta enviada</option>
-          <option value="negociando">Negociando</option>
-          <option value="fechado">Fechado ✓</option>
-          <option value="descartado">Descartado</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Ano do edital</label>
-        <select id="filtAno" onchange="resetPagina();renderTabela()">
-          <option value="">Todos os anos</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Tipo de proponente</label>
-        <select id="filtPessoa" onchange="resetPagina();renderTabela()">
-          <option value="">PJ + PF</option>
-          <option value="PJ">Pessoa Jurídica</option>
-          <option value="PF">Pessoa Física</option>
-        </select>
-      </div>
-    </div>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Funil CRM</div>
-      <div class="crm-stats" id="crmStats">
-        <div class="crm-stat"><div class="crm-stat-val" id="cs-contato">0</div><div class="crm-stat-lbl">Em contato</div></div>
-        <div class="crm-stat"><div class="crm-stat-val" id="cs-proposta">0</div><div class="crm-stat-lbl">Proposta</div></div>
-        <div class="crm-stat"><div class="crm-stat-val" id="cs-negociando">0</div><div class="crm-stat-lbl">Negociando</div></div>
-        <div class="crm-stat"><div class="crm-stat-val" id="cs-fechado">0</div><div class="crm-stat-lbl">Fechados</div></div>
-      </div>
-    </div>
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Por programa</div>
-      <div class="prog-tags" id="progTags">
-        <div style="font-size:11px;color:var(--text4);padding:4px 2px">Atualize os dados para ver</div>
-      </div>
-    </div>
-  </aside>
+  <!-- SIDEBAR removida — layout unificado -->
 
   <!-- MAIN -->
-  <div id="proacSection">
-  <main class="main">
+  <div id="proacSection" style="grid-column:1/-1">
+  <div style="position:fixed;inset:0 0 0 0;padding-top:58px;overflow-y:auto;background:var(--bg);z-index:10">
+  <div style="padding:20px 24px;max-width:1400px;margin:0 auto">
+
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="log-wrap" id="logWrap"><div id="logLines"></div></div>
 
-    <!-- MÉTRICAS -->
-    <div class="metrics">
-      <div class="metric" style="--m-color:#1a6ef5">
-        <div class="metric-accent"></div>
-        <div class="metric-label">Total leads</div>
-        <div class="metric-val" style="color:#1a6ef5" id="mTotal">—</div>
+    <!-- HEADER MODERNO -->
+    <div class="minc-header-bar" style="background:linear-gradient(135deg,#0f2044 0%,#1a3260 50%,#0f2044 100%)">
+      <div class="minc-badge">
+        <div class="minc-badge-icon">🎬</div>
+        <div class="minc-badge-text">
+          <h3>ProAC SP — Programa de Ação Cultural</h3>
+          <p>Secretaria de Cultura do Estado de São Paulo · Projetos aprovados com potencial de acessibilidade</p>
+        </div>
       </div>
-      <div class="metric" style="--m-color:#0099b5">
-        <div class="metric-accent"></div>
-        <div class="metric-label">Audiovisual</div>
-        <div class="metric-val" style="color:#0099b5" id="mAv">—</div>
-      </div>
-      <div class="metric" style="--m-color:#7c3aed">
-        <div class="metric-accent"></div>
-        <div class="metric-label">PNAB acessib.</div>
-        <div class="metric-val" style="color:#7c3aed" id="mPnab">—</div>
-      </div>
-      <div class="metric" style="--m-color:#d97706;cursor:pointer" onclick="document.getElementById('filtTipo').value='festival';resetPagina();renderTabela()" title="Clique para filtrar">
-        <div class="metric-accent"></div>
-        <div class="metric-label">🎪 Festivais/Eventos</div>
-        <div class="metric-val" style="color:#d97706" id="mFestival">—</div>
-      </div>
-      <div class="metric" style="--m-color:#f59e0b">
-        <div class="metric-accent"></div>
-        <div class="metric-label">Novos</div>
-        <div class="metric-val" style="color:#b45309" id="mNovos">—</div>
-      </div>
-      <div class="metric" style="--m-color:#059669">
-        <div class="metric-accent"></div>
-        <div class="metric-label">Valor total</div>
-        <div class="metric-val" style="color:#059669;font-size:18px;padding-top:6px" id="mValor">—</div>
+      <div class="minc-stats">
+        <div class="minc-stat"><div class="val" id="mTotal" style="color:#67e8f9">—</div><div class="lbl">Total leads</div></div>
+        <div class="minc-stat"><div class="val" id="mAv" style="color:#67e8f9">—</div><div class="lbl">Audiovisual</div></div>
+        <div class="minc-stat"><div class="val" id="mPnab" style="color:#c084fc">—</div><div class="lbl">PNAB</div></div>
+        <div class="minc-stat" style="cursor:pointer" onclick="document.getElementById('filtTipo').value='festival';resetPagina();renderTabela()" title="Clique para filtrar">
+          <div class="val" id="mFestival" style="color:#fbbf24">—</div><div class="lbl">🎪 Festivais</div>
+        </div>
+        <div class="minc-stat"><div class="val" id="mNovos" style="color:#f59e0b">—</div><div class="lbl">Novos</div></div>
+        <div class="minc-stat"><div class="val" id="mValor" style="color:#34d399;font-size:16px">—</div><div class="lbl">Valor total</div></div>
       </div>
     </div>
 
-    <!-- GRÁFICOS -->
-    <div class="charts-row">
-      <div class="chart-card">
-        <div class="chart-title">Projetos por programa</div>
-        <div style="position:relative;height:200px"><canvas id="chartProg" role="img" aria-label="Distribuição por programa"></canvas></div>
+    <!-- FILTROS -->
+    <div class="minc-filters">
+      <input class="minc-filter-input" id="busca" placeholder="🔍  Projeto, proponente, cidade..." style="flex:1;min-width:200px" oninput="resetPagina();renderTabela()">
+      <select class="minc-filter-select" id="filtTipo" onchange="resetPagina();renderTabela()">
+        <option value="">Audiovisual + PNAB</option>
+        <option value="audiovisual">Só audiovisual</option>
+        <option value="pnab">Só PNAB acessibilidade</option>
+        <option value="festival">🎪 Festivais & Eventos</option>
+      </select>
+      <select class="minc-filter-select" id="filtNovos" onchange="resetPagina();renderTabela()">
+        <option value="">Todos os projetos</option>
+        <option value="novos">Somente novos</option>
+      </select>
+      <select class="minc-filter-select" id="filtCRM" onchange="resetPagina();renderTabela()">
+        <option value="">Todos os status CRM</option>
+        <option value="nao">Não contatado</option>
+        <option value="contato">Em contato</option>
+        <option value="proposta">Proposta enviada</option>
+        <option value="negociando">Negociando</option>
+        <option value="fechado">Fechado ✓</option>
+        <option value="descartado">Descartado</option>
+      </select>
+      <select class="minc-filter-select" id="filtAno" onchange="resetPagina();renderTabela()">
+        <option value="">Todos os anos</option>
+      </select>
+      <select class="minc-filter-select" id="filtPessoa" onchange="resetPagina();renderTabela()">
+        <option value="">PJ + PF</option>
+        <option value="PJ">Pessoa Jurídica</option>
+        <option value="PF">Pessoa Física</option>
+      </select>
+      <select class="minc-filter-select" id="filtResp" onchange="resetPagina();renderTabela()">
+        <option value="">Todos os responsáveis</option>
+        ${RESPONSAVEIS.filter(r=>r).map(r=>`<option value="${r}">${r}</option>`).join('')}
+      </select>
+    </div>
+
+    <!-- FUNIL CRM INLINE -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="crm-stat" style="flex:1;min-width:80px;cursor:pointer" onclick="document.getElementById('filtCRM').value='contato';resetPagina();renderTabela()">
+        <div class="crm-stat-val" id="cs-contato" style="color:var(--blue)">0</div><div class="crm-stat-lbl">Em contato</div>
       </div>
-      <div class="chart-card">
-        <div class="chart-title">Aprovações por mês</div>
-        <div style="position:relative;height:200px"><canvas id="chartMes" role="img" aria-label="Aprovações por mês"></canvas></div>
+      <div class="crm-stat" style="flex:1;min-width:80px;cursor:pointer" onclick="document.getElementById('filtCRM').value='proposta';resetPagina();renderTabela()">
+        <div class="crm-stat-val" id="cs-proposta" style="color:var(--purple)">0</div><div class="crm-stat-lbl">Proposta</div>
+      </div>
+      <div class="crm-stat" style="flex:1;min-width:80px;cursor:pointer" onclick="document.getElementById('filtCRM').value='negociando';resetPagina();renderTabela()">
+        <div class="crm-stat-val" id="cs-negociando" style="color:var(--orange)">0</div><div class="crm-stat-lbl">Negociando</div>
+      </div>
+      <div class="crm-stat" style="flex:1;min-width:80px;cursor:pointer" onclick="document.getElementById('filtCRM').value='fechado';resetPagina();renderTabela()">
+        <div class="crm-stat-val" id="cs-fechado" style="color:var(--green)">0</div><div class="crm-stat-lbl">Fechados</div>
+      </div>
+      <div style="flex:4;min-width:200px">
+        <div style="font-family:var(--cond);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text4);margin-bottom:6px">Por programa</div>
+        <div class="prog-tags" id="progTags" style="flex-direction:row;flex-wrap:wrap;gap:4px">
+          <div style="font-size:11px;color:var(--text4)">Atualize os dados para ver</div>
+        </div>
       </div>
     </div>
 
     <!-- TABELA -->
-    <div class="table-header">
-      <div class="table-count" id="tabelaInfo">—</div>
-    </div>
-    <div class="table-wrap">
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th onclick="sortBy('aprovacao')" id="th-aprovacao">Data aprov.</th>
-              <th onclick="sortBy('programa')" id="th-programa">Programa</th>
-              <th onclick="sortBy('projeto')" id="th-projeto">Projeto / Proponente</th>
-              <th onclick="sortBy('municipio')" id="th-municipio">Município</th>
-              <th onclick="sortBy('valor')" id="th-valor">Valor</th>
-              <th>Status API</th>
-              <th>Prospecção CRM</th>
-              <th>Responsável</th>
-              <th>Notas</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyLista"></tbody>
-        </table>
-      </div>
-      <div class="paginacao">
+    <div class="minc-table-wrap">
+      <table class="minc-table">
+        <thead>
+          <tr>
+            <th onclick="sortBy('aprovacao')" id="th-aprovacao" style="cursor:pointer">Data aprov.</th>
+            <th onclick="sortBy('programa')" id="th-programa" style="cursor:pointer">Programa</th>
+            <th onclick="sortBy('projeto')" id="th-projeto" style="cursor:pointer">Projeto / Proponente</th>
+            <th onclick="sortBy('municipio')" id="th-municipio" style="cursor:pointer">Município</th>
+            <th onclick="sortBy('valor')" id="th-valor" style="cursor:pointer">Valor</th>
+            <th>Status API</th>
+            <th>Prospecção CRM</th>
+            <th>Responsável</th>
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyLista"></tbody>
+      </table>
+      <div class="minc-pagination">
         <span id="paginfoLabel">—</span>
-        <div class="pag-btns">
-          <button class="pag-btn" id="btnPrev" onclick="pagina(-1)" disabled>← Anterior</button>
-          <button class="pag-btn" id="btnNext" onclick="pagina(1)" disabled>Próxima →</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn-cancel" id="btnPrev" onclick="pagina(-1)" disabled>← Anterior</button>
+          <button class="btn-cancel" id="btnNext" onclick="pagina(1)" disabled>Próxima →</button>
         </div>
       </div>
     </div>
-  </main>
+
+  </div>
+  </div>
   </div><!-- fim #proacSection -->
 </div><!-- fim .layout -->
 
@@ -1682,6 +1643,7 @@ function getFiltrados(){
   const ftipo=document.getElementById('filtTipo').value,fnovos=document.getElementById('filtNovos').value;
   const fano=document.getElementById('filtAno').value,fpessoa=document.getElementById('filtPessoa').value;
   const fcrm=document.getElementById('filtCRM').value;
+  const fresp=(document.getElementById('filtResp')?.value||'');
   let l=[...todosLeads];
   if(filtroProgAtivo)l=l.filter(x=>x.programa===filtroProgAtivo);
   if(busca)l=l.filter(x=>x.projeto.toLowerCase().includes(busca)||x.proponente.toLowerCase().includes(busca)||x.municipio.toLowerCase().includes(busca)||x.segmento.toLowerCase().includes(busca)||x.inscricao.toLowerCase().includes(busca));
@@ -1692,6 +1654,7 @@ function getFiltrados(){
   if(fano)l=l.filter(x=>x.anoEdital===fano);
   if(fpessoa)l=l.filter(x=>x.tipoPessoa===fpessoa);
   if(fcrm)l=l.filter(x=>(crmData[x.id]||{status:'nao'}).status===fcrm);
+  if(fresp)l=l.filter(x=>(crmData[x.id]||{}).responsavel===fresp);
   l.sort((a,b)=>{let va,vb;if(sortCol==='valor'){va=a.valor;vb=b.valor;}else if(sortCol==='projeto'){va=a.projeto;vb=b.projeto;}else if(sortCol==='municipio'){va=a.municipio;vb=b.municipio;}else if(sortCol==='programa'){va=a.programa;vb=b.programa;}else{va=a.aprovacao;vb=b.aprovacao;}if(va<vb)return sortAsc?-1:1;if(va>vb)return sortAsc?1:-1;return 0;});
   return l;
 }
@@ -1710,13 +1673,13 @@ function renderTabela(){
   const tbody=document.getElementById('tbodyLista');
   if(todosLeads.length===0){
     tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">ETC</div><p>Nenhum dado carregado ainda.<br>Clique em <strong>Atualizar dados</strong> para buscar os projetos da API.</p></div></td></tr>`;
-    ['paginfoLabel','tabelaInfo'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('paginfoLabel').textContent='—';
     document.getElementById('btnPrev').disabled=document.getElementById('btnNext').disabled=true;
     return;
   }
   if(lista.length===0){
     tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><p>Nenhum projeto com os filtros selecionados.</p></div></td></tr>`;
-    document.getElementById('tabelaInfo').innerHTML='<strong>0</strong> projetos';
+    
     document.getElementById('paginfoLabel').textContent='0 projetos';
     document.getElementById('btnPrev').disabled=document.getElementById('btnNext').disabled=true;
     return;
@@ -1767,7 +1730,7 @@ function renderTabela(){
   }).join('');
   const total=lista.length,fim=Math.min(inicio+POR_PAGINA,total);
   document.getElementById('paginfoLabel').textContent=`${inicio+1}–${fim} de ${total.toLocaleString('pt-BR')}`;
-  document.getElementById('tabelaInfo').innerHTML=`<strong>${total.toLocaleString('pt-BR')}</strong> projetos`;
+  
   document.getElementById('btnPrev').disabled=paginaAtual===0;
   document.getElementById('btnNext').disabled=fim>=total;
   document.querySelectorAll('thead th').forEach(th=>{th.classList.toggle('sorted',th.id.replace('th-','')===sortCol);});
@@ -1825,7 +1788,7 @@ function salvarCRM(){
   renderTabela();
 }
 
-function pagina(dir){paginaAtual+=dir;renderTabela();document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth',block:'start'});}
+function pagina(dir){paginaAtual+=dir;renderTabela();}
 function resetPagina(){paginaAtual=0;}
 function sortBy(col){sortCol===col?sortAsc=!sortAsc:(sortCol=col,sortAsc=false);resetPagina();renderTabela();}
 
@@ -2830,7 +2793,6 @@ function trocarFonte(fonte) {
   document.getElementById('tabFederal').classList.toggle('active', isFederal);
   document.getElementById('tabSalic').classList.toggle('active', isSalic);
   document.getElementById('tabFsa').classList.toggle('active', isFsa);
-  document.getElementById('sidebar').style.display = isProac ? '' : 'none';
   if (isMinc)    inicializarMinc();
   if (isFederal) inicializarFederal();
   if (isSalic)   inicializarSalic();
