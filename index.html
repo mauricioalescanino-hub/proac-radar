@@ -1453,6 +1453,35 @@ function renderRespSelect(resp, onchangeJs) {
   </select>`;
 }
 
+// Detecta se o serviço de acessibilidade será ao vivo, gravado ou ambos
+// baseado em segmento, tipologia e nome do projeto
+function tipoServico(textos) {
+  const txt = textos.filter(Boolean).join(' ').toLowerCase();
+
+  const AO_VIVO = ['apresentação','espetáculo','espetaculo','show','concerto','performance',
+    'teatro','dança','danca','ópera','opera','circo','musical','recital','sarau',
+    'festival','evento','mostra','temporada','turnê','turne','ao vivo','live'];
+
+  const GRAVADO = ['audiovisual','cinema','filme','longa','curta','série','serie',
+    'documentário','documentario','animação','animacao','fonográfico','fonografico',
+    'gravação','gravacao','produção audiovisual','producao audiovisual',
+    'comercialização','comercializacao','streaming','vídeo','video','fsa','prodecine','prodav'];
+
+  const isVivo   = AO_VIVO.some(t => txt.includes(t));
+  const isGravado = GRAVADO.some(t => txt.includes(t));
+
+  if (isVivo && isGravado) return { icon: '🎭🎬', title: 'Ao vivo + Gravado', tipo: 'ambos' };
+  if (isVivo)              return { icon: '🎭',    title: 'Ao vivo — intérprete presencial', tipo: 'vivo' };
+  if (isGravado)           return { icon: '🎬',    title: 'Gravado — pós-produção', tipo: 'gravado' };
+  return null;
+}
+
+function renderTipoIcon(textos) {
+  const t = tipoServico(textos);
+  if (!t) return '';
+  return `<span title="${t.title}" style="font-size:13px;margin-right:4px;vertical-align:middle;cursor:help">${t.icon}</span>`;
+}
+
 function log(msg,tipo='prog'){const el=document.getElementById('logLines'),w=document.getElementById('logWrap');w.classList.add('visible');const d=document.createElement('div');d.className='log-line '+tipo;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
 function clearLog(){document.getElementById('logLines').innerHTML='';document.getElementById('logWrap').classList.remove('visible');}
 function setProgress(p){document.getElementById('progressFill').style.width=p+'%';}
@@ -1626,7 +1655,7 @@ function renderTabela(){
       <td><span class="prog-badge" style="background:${cor}18;color:${cor};border:1px solid ${cor}35">${label}</span></td>
       <td style="max-width:240px">
         ${novoTag}${festTag}${pnabTag}
-        <div class="proj-name" style="cursor:pointer;color:var(--blue)" onclick="abrirProjModal('${l.id}')">${l.projeto}</div>
+        <div class="proj-name" style="cursor:pointer;color:var(--blue)" onclick="abrirProjModal('${l.id}')">${renderTipoIcon([l.segmento, l.programa, l.projeto])}${l.projeto}</div>
         <div class="proj-num">${l.inscricao}</div>
         <div class="prop-name" style="margin-top:3px">${l.proponente}</div>
         <div class="prop-tipo">${l.tipoPessoa} · ${l.municipio}</div>
@@ -2189,8 +2218,14 @@ let salicResultados = [];
 let salicCRM = {};
 let salicDebounceTimer = null;
 
+let salicCarregado = false;
+
 function inicializarSalic() {
   carregarSalicCRM();
+  if (!salicCarregado) {
+    salicCarregado = true;
+    salicBuscar();
+  }
 }
 
 async function carregarSalicCRM() {
@@ -2329,7 +2364,7 @@ function renderSalic() {
     return `<tr>
       <td style="color:var(--text4);font-family:var(--cond)">${salicOffset+i+1}</td>
       <td style="max-width:280px">
-        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchSalic('${p.PRONAC}')">${p.nome}</div>
+        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchSalic('${p.PRONAC}')">${renderTipoIcon([p.segmento, p.tipologia, p.nome])}${p.nome}</div>
         <div class="minc-empresa">${p.proponente||''} · ${p.cgccpf||''}</div>
         <div style="font-size:10px;color:var(--text4)">${p.tipologia||''}</div>
       </td>
@@ -2591,7 +2626,7 @@ function renderFederal() {
       <td style="color:var(--text4);font-family:var(--cond)">${fedPag*FED_POR_PAG+i+1}</td>
       <td style="max-width:320px">
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">${srcBadge}${priBadge}${metaBadge}</div>
-        <div class="minc-obra">${l.p}</div>
+        <div class="minc-obra">${renderTipoIcon([l.obj, l.tip])}${l.p}</div>
         <div class="minc-empresa" style="font-size:10px">${l.cnpj || ''} · ${l.tip || ''}</div>
         ${l.obj ? `<div style="font-size:11px;color:var(--text4);margin-top:3px;line-height:1.4;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.obj}</div>` : ''}
       </td>
@@ -2818,7 +2853,7 @@ function renderMinc() {
     return `<tr>
       <td style="color:var(--text4);font-family:var(--cond)">${mincPag*MINC_POR_PAG+i+1}</td>
       <td>
-        <div class="minc-obra">${l.obra}</div>
+        <div class="minc-obra"><span title="Gravado — pós-produção" style="font-size:13px;margin-right:4px;vertical-align:middle">🎬</span>${l.obra}</div>
         <div class="minc-empresa">${l.empresa}</div>
       </td>
       <td style="font-size:11px;color:var(--text3)">${l.municipio}</td>
@@ -3078,7 +3113,7 @@ function renderFsa() {
     return `<tr>
       <td style="color:var(--text4);font-family:var(--cond)">${fsaPag*FSA_POR_PAG+i+1}</td>
       <td style="max-width:260px">
-        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchFsa('${idEsc}')">${p.titulo||'—'}</div>
+        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchFsa('${idEsc}')"><span title="Gravado — pós-produção" style="font-size:13px;margin-right:4px;vertical-align:middle">🎬</span>${p.titulo||'—'}</div>
         <div class="minc-empresa">${p.data_contrato||''}</div>
       </td>
       <td style="max-width:200px">
