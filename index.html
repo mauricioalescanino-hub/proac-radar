@@ -786,7 +786,7 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
 </div><!-- fim .layout -->
 
 <!-- ── SEÇÃO MINC ── -->
-<div id="mincSection" style="display:none;position:fixed;inset:56px 0 0 0;overflow-y:auto;background:var(--bg);z-index:10">
+<div id="mincSection" style="display:none;position:fixed;inset:0 0 0 0;padding-top:56px;overflow-y:auto;background:var(--bg);z-index:10">
   <div style="padding:20px 24px;max-width:1400px;margin:0 auto">
 
     <div class="minc-header-bar">
@@ -805,7 +805,8 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
     </div>
 
     <div class="minc-filters">
-      <input class="minc-filter-input" id="mincBusca" placeholder="🔍  Buscar obra ou empresa..." style="flex:1;min-width:200px" oninput="renderMinc()">
+      <input class="minc-filter-input" id="mincBusca" placeholder="🔍  Buscar obra..." style="flex:1;min-width:160px" oninput="renderMinc()">
+      <input class="minc-filter-input" id="mincBuscaEmpresa" placeholder="🏢  Filtrar por empresa..." style="flex:1;min-width:160px" oninput="renderMinc()">
       <select class="minc-filter-select" id="mincFiltroUF" onchange="renderMinc()">
         <option value="">Todos os estados</option>
       </select>
@@ -2002,12 +2003,14 @@ async function atualizarMincCRM(id, campo, valor) {
 }
 
 function getMincFiltrados() {
-  const busca = (document.getElementById('mincBusca')?.value || '').toLowerCase();
-  const uf    = document.getElementById('mincFiltroUF')?.value || '';
-  const mod   = document.getElementById('mincFiltroModulo')?.value || '';
-  const crm   = document.getElementById('mincFiltroCRM')?.value || '';
+  const busca   = (document.getElementById('mincBusca')?.value || '').toLowerCase();
+  const empresa = (document.getElementById('mincBuscaEmpresa')?.value || '').toLowerCase();
+  const uf      = document.getElementById('mincFiltroUF')?.value || '';
+  const mod     = document.getElementById('mincFiltroModulo')?.value || '';
+  const crm     = document.getElementById('mincFiltroCRM')?.value || '';
   return MINC_LEADS.filter(l => {
-    if (busca && !l.obra.toLowerCase().includes(busca) && !l.empresa.toLowerCase().includes(busca)) return false;
+    if (busca   && !l.obra.toLowerCase().includes(busca)) return false;
+    if (empresa && !l.empresa.toLowerCase().includes(empresa)) return false;
     if (uf  && l.uf !== uf) return false;
     if (mod && l.modulo !== mod) return false;
     if (crm && (mincCRM[l.id]?.status || 'nao') !== crm) return false;
