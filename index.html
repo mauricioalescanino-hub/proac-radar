@@ -2170,6 +2170,10 @@ let salicDebounceTimer = null;
 
 function inicializarSalic() {
   carregarSalicCRM();
+  // Auto-busca ao abrir a aba se ainda não tem resultados
+  if (!salicResultados.length) {
+    setTimeout(() => salicBuscar(true), 300);
+  }
 }
 
 async function carregarSalicCRM() {
@@ -2214,12 +2218,15 @@ async function salicBuscar(resetOffset = true) {
   document.getElementById('salicBtnBuscar').disabled = true;
 
   try {
+    console.log('[SALIC] Buscando:', `${SALIC_PROXY}?${params}`);
     const resp = await fetch(`${SALIC_PROXY}?${params}`);
     const data = await resp.json();
+    console.log('[SALIC] Resposta:', data);
     if (data.error) throw new Error(data.error);
 
     let projetos = data._embedded?.projetos || [];
     salicTotalAPI = data.total || 0;
+    console.log(`[SALIC] ${projetos.length} projetos brutos, total API: ${salicTotalAPI}`);
 
     const TERMOS = ['libras','audiodescrição','audiodescricao','legenda','closed caption','língua brasileira'];
     const filtroSrv = srv.toLowerCase();
@@ -2235,6 +2242,7 @@ async function salicBuscar(resetOffset = true) {
       }
       return true;
     });
+    console.log(`[SALIC] Após filtro de acessibilidade: ${projetos.length} projetos`);
 
     salicResultados = projetos;
 
@@ -2578,7 +2586,7 @@ function renderFederal() {
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">${srcBadge}${priBadge}${metaBadge}</div>
         <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchFederal('${l.id}')">${l.p}</div>
         <div class="minc-empresa" style="font-size:10px">${l.cnpj || ''} · ${l.tip || ''}</div>
-        ${l.obj ? `<div style="font-size:11px;color:var(--text4);margin-top:3px;line-height:1.4;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.obj}</div>` : ''}
+        ${l.obj ? `<div style="font-size:11px;color:var(--text4);margin-top:3px;line-height:1.4;max-width:300px">${l.obj}</div>` : ''}
       </td>
       <td style="min-width:160px">
         ${l.em ? `<div style="font-size:11px;color:var(--blue)"><a href="mailto:${l.em}" style="color:var(--blue);text-decoration:none" onclick="event.stopPropagation()">✉ ${l.em}</a></div>` : ''}
