@@ -612,7 +612,6 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         <button class="source-tab" id="tabMinc" onclick="trocarFonte('minc')">MinC Nº6</button>
         <button class="source-tab" id="tabFederal" onclick="trocarFonte('federal')">🇧🇷 Federal</button>
         <button class="source-tab" id="tabSalic" onclick="trocarFonte('salic')">📜 Rouanet</button>
-        <button class="source-tab" id="tabFsa" onclick="trocarFonte('fsa')">🎬 FSA</button>
       </nav>
     </div>
     <div class="topbar-right">
@@ -635,124 +634,162 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
     </div>
   </header>
 
-  <!-- SIDEBAR removida — layout unificado -->
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Busca</div>
+      <div class="filter-group">
+        <input type="text" id="busca" placeholder="Projeto, proponente, cidade..." oninput="resetPagina();renderTabela()">
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Filtros</div>
+      <div class="filter-group">
+        <label>Tipo de lead</label>
+        <select id="filtTipo" onchange="resetPagina();renderTabela()">
+          <option value="">Audiovisual + PNAB</option>
+          <option value="audiovisual">Só audiovisual</option>
+          <option value="pnab">Só PNAB acessibilidade</option>
+          <option value="festival">🎪 Festivais & Eventos</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Novidades</label>
+        <select id="filtNovos" onchange="resetPagina();renderTabela()">
+          <option value="">Todos os projetos</option>
+          <option value="novos">Somente novos</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Status CRM</label>
+        <select id="filtCRM" onchange="resetPagina();renderTabela()">
+          <option value="">Todos os status</option>
+          <option value="nao">Não contatado</option>
+          <option value="contato">Em contato</option>
+          <option value="proposta">Proposta enviada</option>
+          <option value="negociando">Negociando</option>
+          <option value="fechado">Fechado ✓</option>
+          <option value="descartado">Descartado</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Ano do edital</label>
+        <select id="filtAno" onchange="resetPagina();renderTabela()">
+          <option value="">Todos os anos</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Tipo de proponente</label>
+        <select id="filtPessoa" onchange="resetPagina();renderTabela()">
+          <option value="">PJ + PF</option>
+          <option value="PJ">Pessoa Jurídica</option>
+          <option value="PF">Pessoa Física</option>
+        </select>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Funil CRM</div>
+      <div class="crm-stats" id="crmStats">
+        <div class="crm-stat"><div class="crm-stat-val" id="cs-contato">0</div><div class="crm-stat-lbl">Em contato</div></div>
+        <div class="crm-stat"><div class="crm-stat-val" id="cs-proposta">0</div><div class="crm-stat-lbl">Proposta</div></div>
+        <div class="crm-stat"><div class="crm-stat-val" id="cs-negociando">0</div><div class="crm-stat-lbl">Negociando</div></div>
+        <div class="crm-stat"><div class="crm-stat-val" id="cs-fechado">0</div><div class="crm-stat-lbl">Fechados</div></div>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Por programa</div>
+      <div class="prog-tags" id="progTags">
+        <div style="font-size:11px;color:var(--text4);padding:4px 2px">Atualize os dados para ver</div>
+      </div>
+    </div>
+  </aside>
 
   <!-- MAIN -->
-  <div id="proacSection" style="grid-column:1/-1">
-  <div style="position:fixed;inset:0 0 0 0;padding-top:58px;overflow-y:auto;background:var(--bg);z-index:10">
-  <div style="padding:20px 24px;max-width:1400px;margin:0 auto">
-
+  <div id="proacSection">
+  <main class="main">
     <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     <div class="log-wrap" id="logWrap"><div id="logLines"></div></div>
 
-    <!-- HEADER MODERNO -->
-    <div class="minc-header-bar" style="background:linear-gradient(135deg,#0f2044 0%,#1a3260 50%,#0f2044 100%)">
-      <div class="minc-badge">
-        <div class="minc-badge-icon">🎬</div>
-        <div class="minc-badge-text">
-          <h3>ProAC SP — Programa de Ação Cultural</h3>
-          <p>Secretaria de Cultura do Estado de São Paulo · Projetos aprovados com potencial de acessibilidade</p>
-        </div>
+    <!-- MÉTRICAS -->
+    <div class="metrics">
+      <div class="metric" style="--m-color:#1a6ef5">
+        <div class="metric-accent"></div>
+        <div class="metric-label">Total leads</div>
+        <div class="metric-val" style="color:#1a6ef5" id="mTotal">—</div>
       </div>
-      <div class="minc-stats">
-        <div class="minc-stat"><div class="val" id="mTotal" style="color:#67e8f9">—</div><div class="lbl">Total leads</div></div>
-        <div class="minc-stat"><div class="val" id="mAv" style="color:#67e8f9">—</div><div class="lbl">Audiovisual</div></div>
-        <div class="minc-stat"><div class="val" id="mPnab" style="color:#c084fc">—</div><div class="lbl">PNAB</div></div>
-        <div class="minc-stat" style="cursor:pointer" onclick="document.getElementById('filtTipo').value='festival';resetPagina();renderTabela()" title="Clique para filtrar">
-          <div class="val" id="mFestival" style="color:#fbbf24">—</div><div class="lbl">🎪 Festivais</div>
-        </div>
-        <div class="minc-stat"><div class="val" id="mNovos" style="color:#f59e0b">—</div><div class="lbl">Novos</div></div>
-        <div class="minc-stat"><div class="val" id="mValor" style="color:#34d399;font-size:16px">—</div><div class="lbl">Valor total</div></div>
+      <div class="metric" style="--m-color:#0099b5">
+        <div class="metric-accent"></div>
+        <div class="metric-label">Audiovisual</div>
+        <div class="metric-val" style="color:#0099b5" id="mAv">—</div>
+      </div>
+      <div class="metric" style="--m-color:#7c3aed">
+        <div class="metric-accent"></div>
+        <div class="metric-label">PNAB acessib.</div>
+        <div class="metric-val" style="color:#7c3aed" id="mPnab">—</div>
+      </div>
+      <div class="metric" style="--m-color:#d97706;cursor:pointer" onclick="document.getElementById('filtTipo').value='festival';resetPagina();renderTabela()" title="Clique para filtrar">
+        <div class="metric-accent"></div>
+        <div class="metric-label">🎪 Festivais/Eventos</div>
+        <div class="metric-val" style="color:#d97706" id="mFestival">—</div>
+      </div>
+      <div class="metric" style="--m-color:#f59e0b">
+        <div class="metric-accent"></div>
+        <div class="metric-label">Novos</div>
+        <div class="metric-val" style="color:#b45309" id="mNovos">—</div>
+      </div>
+      <div class="metric" style="--m-color:#059669">
+        <div class="metric-accent"></div>
+        <div class="metric-label">Valor total</div>
+        <div class="metric-val" style="color:#059669;font-size:18px;padding-top:6px" id="mValor">—</div>
       </div>
     </div>
 
-    <!-- FILTROS -->
-    <div class="minc-filters">
-      <input class="minc-filter-input" id="busca" placeholder="🔍  Projeto, proponente, cidade..." style="flex:1;min-width:200px" oninput="resetPagina();renderTabela()">
-      <select class="minc-filter-select" id="filtTipo" onchange="resetPagina();renderTabela()">
-        <option value="">Audiovisual + PNAB</option>
-        <option value="audiovisual">Só audiovisual</option>
-        <option value="pnab">Só PNAB acessibilidade</option>
-        <option value="festival">🎪 Festivais & Eventos</option>
-      </select>
-      <select class="minc-filter-select" id="filtNovos" onchange="resetPagina();renderTabela()">
-        <option value="">Todos os projetos</option>
-        <option value="novos">Somente novos</option>
-      </select>
-      <select class="minc-filter-select" id="filtCRM" onchange="resetPagina();renderTabela()">
-        <option value="">Todos os status CRM</option>
-        <option value="nao">Não contatado</option>
-        <option value="contato">Em contato</option>
-        <option value="proposta">Proposta enviada</option>
-        <option value="negociando">Negociando</option>
-        <option value="fechado">Fechado ✓</option>
-        <option value="descartado">Descartado</option>
-      </select>
-      <select class="minc-filter-select" id="filtAno" onchange="resetPagina();renderTabela()">
-        <option value="">Todos os anos</option>
-      </select>
-      <select class="minc-filter-select" id="filtPessoa" onchange="resetPagina();renderTabela()">
-        <option value="">PJ + PF</option>
-        <option value="PJ">Pessoa Jurídica</option>
-        <option value="PF">Pessoa Física</option>
-      </select>
-      <select class="minc-filter-select" id="filtResp" onchange="resetPagina();renderTabela()">
-        <option value="">Todos os responsáveis</option>
-        ${RESPONSAVEIS.filter(r=>r).map(r=>`<option value="${r}">${r}</option>`).join('')}
-      </select>
-    </div>
-
-    <!-- FUNIL CRM INLINE -->
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-      <div class="crm-stat" style="flex:1;min-width:80px;cursor:pointer" onclick="document.getElementById('filtCRM').value='contato';resetPagina();renderTabela()">
-        <div class="crm-stat-val" id="cs-contato" style="color:var(--blue)">0</div><div class="crm-stat-lbl">Em contato</div>
+    <!-- GRÁFICOS -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Projetos por programa</div>
+        <div style="position:relative;height:200px"><canvas id="chartProg" role="img" aria-label="Distribuição por programa"></canvas></div>
       </div>
-      <div class="crm-stat" style="flex:1;min-width:80px;cursor:pointer" onclick="document.getElementById('filtCRM').value='proposta';resetPagina();renderTabela()">
-        <div class="crm-stat-val" id="cs-proposta" style="color:var(--purple)">0</div><div class="crm-stat-lbl">Proposta</div>
-      </div>
-      <div class="crm-stat" style="flex:1;min-width:80px;cursor:pointer" onclick="document.getElementById('filtCRM').value='negociando';resetPagina();renderTabela()">
-        <div class="crm-stat-val" id="cs-negociando" style="color:var(--orange)">0</div><div class="crm-stat-lbl">Negociando</div>
-      </div>
-      <div class="crm-stat" style="flex:1;min-width:80px;cursor:pointer" onclick="document.getElementById('filtCRM').value='fechado';resetPagina();renderTabela()">
-        <div class="crm-stat-val" id="cs-fechado" style="color:var(--green)">0</div><div class="crm-stat-lbl">Fechados</div>
-      </div>
-      <div style="flex:4;min-width:200px">
-        <div style="font-family:var(--cond);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text4);margin-bottom:6px">Por programa</div>
-        <div class="prog-tags" id="progTags" style="flex-direction:row;flex-wrap:wrap;gap:4px">
-          <div style="font-size:11px;color:var(--text4)">Atualize os dados para ver</div>
-        </div>
+      <div class="chart-card">
+        <div class="chart-title">Aprovações por mês</div>
+        <div style="position:relative;height:200px"><canvas id="chartMes" role="img" aria-label="Aprovações por mês"></canvas></div>
       </div>
     </div>
 
     <!-- TABELA -->
-    <div class="minc-table-wrap">
-      <table class="minc-table">
-        <thead>
-          <tr>
-            <th onclick="sortBy('aprovacao')" id="th-aprovacao" style="cursor:pointer">Data aprov.</th>
-            <th onclick="sortBy('programa')" id="th-programa" style="cursor:pointer">Programa</th>
-            <th onclick="sortBy('projeto')" id="th-projeto" style="cursor:pointer">Projeto / Proponente</th>
-            <th onclick="sortBy('municipio')" id="th-municipio" style="cursor:pointer">Município</th>
-            <th onclick="sortBy('valor')" id="th-valor" style="cursor:pointer">Valor</th>
-            <th>Status API</th>
-            <th>Prospecção CRM</th>
-            <th>Responsável</th>
-            <th>Notas</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyLista"></tbody>
-      </table>
-      <div class="minc-pagination">
+    <div class="table-header">
+      <div class="table-count" id="tabelaInfo">—</div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('aprovacao')" id="th-aprovacao">Data aprov.</th>
+              <th onclick="sortBy('programa')" id="th-programa">Programa</th>
+              <th onclick="sortBy('projeto')" id="th-projeto">Projeto / Proponente</th>
+              <th onclick="sortBy('municipio')" id="th-municipio">Município</th>
+              <th onclick="sortBy('valor')" id="th-valor">Valor</th>
+              <th>Status API</th>
+              <th>Prospecção CRM</th>
+              <th>Notas</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyLista"></tbody>
+        </table>
+      </div>
+      <div class="paginacao">
         <span id="paginfoLabel">—</span>
-        <div style="display:flex;gap:8px">
-          <button class="btn-cancel" id="btnPrev" onclick="pagina(-1)" disabled>← Anterior</button>
-          <button class="btn-cancel" id="btnNext" onclick="pagina(1)" disabled>Próxima →</button>
+        <div class="pag-btns">
+          <button class="pag-btn" id="btnPrev" onclick="pagina(-1)" disabled>← Anterior</button>
+          <button class="pag-btn" id="btnNext" onclick="pagina(1)" disabled>Próxima →</button>
         </div>
       </div>
     </div>
-
-  </div>
-  </div>
+  </main>
   </div><!-- fim #proacSection -->
 </div><!-- fim .layout -->
 
@@ -812,7 +849,6 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
             <th>Valor</th>
             <th>Situação</th>
             <th>CRM</th>
-            <th>Responsável</th>
             <th style="width:32px"></th>
           </tr>
         </thead>
@@ -958,9 +994,6 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         <option value="Autorizada a captação total dos recursos">Captação autorizada</option>
         <option value="Em análise">Em análise</option>
       </select>
-      <select class="minc-filter-select" id="salicSegmento" onchange="renderSalic()" style="max-width:220px">
-        <option value="">Todos os segmentos</option>
-      </select>
       <input class="minc-filter-input" id="salicBusca" placeholder="🔍  Buscar nome ou proponente..." style="flex:1;min-width:180px" oninput="salicBuscarDebounce()">
       <button class="btn-sm primary" onclick="salicBuscar()" id="salicBtnBuscar">🔍 Buscar</button>
     </div>
@@ -984,7 +1017,6 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
             <th>Valor aprovado</th>
             <th>Vigência</th>
             <th>CRM</th>
-            <th>Responsável</th>
             <th style="width:32px"></th>
           </tr>
         </thead>
@@ -997,91 +1029,6 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         <div style="display:flex;gap:8px">
           <button class="btn-cancel" id="salicBtnPrev" onclick="salicNavegar(-1)" disabled>← Anterior</button>
           <button class="btn-cancel" id="salicBtnNext" onclick="salicNavegar(1)" disabled>Próxima →</button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ── SEÇÃO FSA / ANCINE ── -->
-<div id="fsaSection" style="display:none;position:fixed;inset:0 0 0 0;padding-top:56px;overflow-y:auto;background:var(--bg);z-index:10">
-  <div style="padding:20px 24px;max-width:1400px;margin:0 auto">
-
-    <div class="minc-header-bar" style="background:linear-gradient(135deg,#0a1628 0%,#0d2137 50%,#0a1628 100%)">
-      <div class="minc-badge">
-        <div class="minc-badge-icon">🎬</div>
-        <div class="minc-badge-text">
-          <h3>FSA — Fundo Setorial do Audiovisual · ANCINE</h3>
-          <p>Projetos contratados via Prodecine, Prodav e chamadas públicas · Atualização mensal</p>
-        </div>
-      </div>
-      <div class="minc-stats">
-        <div class="minc-stat"><div class="val" id="fsaTotal" style="color:#67e8f9">—</div><div class="lbl">Projetos</div></div>
-        <div class="minc-stat"><div class="val" id="fsaValorTotal" style="color:#67e8f9">—</div><div class="lbl">Valor total</div></div>
-        <div class="minc-stat"><div class="val" id="fsaChamadas" style="color:#67e8f9">—</div><div class="lbl">Chamadas</div></div>
-      </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="minc-filters">
-      <select class="minc-filter-select" id="fsaAnoMin" onchange="renderFsa()">
-        <option value="">Todos os anos</option>
-        <option value="2020" selected>2020+</option>
-        <option value="2021">2021+</option>
-        <option value="2022">2022+</option>
-        <option value="2023">2023+</option>
-        <option value="2024">2024+</option>
-      </select>
-      <select class="minc-filter-select" id="fsaChamada" onchange="renderFsa()" style="max-width:200px">
-        <option value="">Todas as chamadas</option>
-      </select>
-      <input class="minc-filter-input" id="fsaBusca" placeholder="🔍  Buscar título ou produtora..." style="flex:1;min-width:200px" oninput="fsaBuscarDebounce()">
-      <select class="minc-filter-select" id="fsaFiltroCRM" onchange="renderFsa()">
-        <option value="">Todos os status CRM</option>
-        <option value="nao">Não contatado</option>
-        <option value="contato">Em contato</option>
-        <option value="proposta">Proposta enviada</option>
-        <option value="negociando">Negociando</option>
-        <option value="fechado">Fechado ✓</option>
-        <option value="descartado">Descartado</option>
-      </select>
-      <button class="btn-sm primary" onclick="fsaCarregar()" id="fsaBtnCarregar">⟳ Carregar dados</button>
-    </div>
-
-    <!-- Loading -->
-    <div id="fsaLoading" style="display:none;text-align:center;padding:40px;color:var(--text3)">
-      <div class="pitch-dots" style="justify-content:center;display:flex;margin-bottom:12px"><span></span><span></span><span></span></div>
-      <div style="font-family:var(--cond);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase">Carregando dados do FSA/ANCINE...</div>
-    </div>
-
-    <!-- Tabela -->
-    <div class="minc-table-wrap" id="fsaTableWrap">
-      <table class="minc-table">
-        <thead>
-          <tr>
-            <th style="width:36px">#</th>
-            <th>Título do projeto</th>
-            <th>Produtora</th>
-            <th>Proponente</th>
-            <th>Chamada pública</th>
-            <th>Ano</th>
-            <th>Valor contrato</th>
-            <th>Valor liberado</th>
-            <th>CRM</th>
-            <th>Responsável</th>
-            <th style="width:32px"></th>
-          </tr>
-        </thead>
-        <tbody id="fsaTbody">
-          <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text4);font-style:italic">Clique em "Carregar dados" para buscar os projetos do FSA/ANCINE</td></tr>
-        </tbody>
-      </table>
-      <div class="minc-pagination">
-        <span id="fsaPagInfo">—</span>
-        <div style="display:flex;gap:8px">
-          <button class="btn-cancel" id="fsaBtnPrev" onclick="fsaPaginar(-1)" disabled>← Anterior</button>
-          <button class="btn-cancel" id="fsaBtnNext" onclick="fsaPaginar(1)" disabled>Próxima →</button>
         </div>
       </div>
     </div>
@@ -1298,8 +1245,6 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const CRM_STATUS_LABELS={nao:'Não contatado',contato:'Em contato',proposta:'Proposta enviada',negociando:'Negociando',fechado:'Fechado ✓',descartado:'Descartado'};
 const CRM_STATUS_CORES={nao:'var(--text3)',contato:'var(--blue)',proposta:'var(--purple)',negociando:'var(--orange)',fechado:'var(--green)',descartado:'var(--text4)'};
-const RESPONSAVEIS = ['','Daniela','Fabriccio','Mauricio','Renato','Hunter','Marketing'];
-const RESP_CORES = {'Daniela':'#7c3aed','Fabriccio':'#0891b2','Mauricio':'#059669','Renato':'#d97706','Hunter':'#dc2626','Marketing':'#6366f1'};;
 
 let todosLeads=[],idsVistos=new Set(JSON.parse(localStorage.getItem(IDS_KEY)||'[]'));
 let crmData={};
@@ -1319,7 +1264,6 @@ async function carregarCRMSupabase() {
         proximoPasso: row.proximo_passo || '',
         obs: row.obs || '',
         moskitId: row.moskit_id || '',
-        tipoServico: row.tipo_servico || '',
         updatedAt: row.updated_at || ''
       };
     }
@@ -1350,7 +1294,6 @@ async function saveCRM(id, dados) {
       proximo_passo: d.proximoPasso || '',
       obs: d.obs || '',
       moskit_id: d.moskitId || '',
-      tipo_servico: d.tipoServico || '',
       updated_at: new Date().toISOString()
     }, { onConflict: 'id', ignoreDuplicates: false });
     if (error) console.warn('Supabase CRM save error:', error.message);
@@ -1406,124 +1349,6 @@ function formatDate(s){if(!s)return'—';try{return new Date(s).toLocaleDateStri
 function formatValor(v){if(!v)return'—';return'R$\u00a0'+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
 function getCRM(id){return crmData[id]||{status:'nao',responsavel:'',dataContato:'',proximoPasso:'',obs:''};}
 
-function renderRespSelect(resp, onchangeJs) {
-  const cor = RESP_CORES[resp] || 'var(--text4)';
-  const style = resp
-    ? `color:${cor};border-color:${cor}33;background:${cor}11;font-weight:700`
-    : 'color:var(--text4)';
-  return `<select class="crm-select" onchange="${onchangeJs}" style="font-size:11px;padding:3px 6px;min-width:100px;${style}">
-    ${RESPONSAVEIS.map(r => `<option value="${r}"${r===resp?' selected':''}>${r||'— resp.'}</option>`).join('')}
-  </select>`;
-}
-
-const TIPO_SERVICO_MAP = {
-  'vivo':    { icon: '🎭', title: 'Ao vivo — intérprete presencial' },
-  'gravado': { icon: '🎬', title: 'Gravado — pós-produção' },
-  'ambos':   { icon: '🎭🎬', title: 'Ao vivo + Gravado' },
-  '':        { icon: '❓', title: 'Indefinido — clique para definir' },
-};
-
-function tipoServicoDetectado(textos) {
-  const txt = textos.filter(Boolean).join(' ').toLowerCase();
-  const AO_VIVO = ['apresentação','espetáculo','espetaculo','show','concerto','performance',
-    'teatro','dança','danca','ópera','opera','circo','musical','recital','sarau',
-    'festival','evento','mostra','temporada','turnê','turne','ao vivo','live'];
-  const GRAVADO = ['audiovisual','cinema','filme','longa','curta','série','serie',
-    'documentário','documentario','animação','animacao','fonográfico','fonografico',
-    'gravação','gravacao','produção audiovisual','comercialização','streaming','vídeo','video'];
-  const isVivo    = AO_VIVO.some(t => txt.includes(t));
-  const isGravado = GRAVADO.some(t => txt.includes(t));
-  if (isVivo && isGravado) return 'ambos';
-  if (isVivo)              return 'vivo';
-  if (isGravado)           return 'gravado';
-  return '';
-}
-
-// fonte: 'proac' | 'salic' | 'minc' | 'federal' | 'fsa'
-// idEsc: id já escapado para uso inline
-function renderTipoIconClicavel(idLead, textos, tipoSalvo, fonte) {
-  const tipo = tipoSalvo || tipoServicoDetectado(textos);
-  const { icon, title } = TIPO_SERVICO_MAP[tipo] || TIPO_SERVICO_MAP[''];
-  const idEsc = String(idLead).replace(/'/g, "\\'").replace(/"/g, '&quot;');
-  return `<span
-    onclick="abrirTipoServicoPopup('${idEsc}','${fonte}',event)"
-    title="${title} — clique para editar"
-    style="font-size:13px;margin-right:4px;vertical-align:middle;cursor:pointer;opacity:${tipo?'1':'0.35'}"
-  >${icon}</span>`;
-}
-
-// Popup inline leve para editar o tipo de serviço
-function abrirTipoServicoPopup(id, fonte, event) {
-  event.stopPropagation();
-  // Remove popup anterior se existir
-  document.getElementById('tipoServicoPopup')?.remove();
-
-  const popup = document.createElement('div');
-  popup.id = 'tipoServicoPopup';
-  popup.style.cssText = `position:fixed;z-index:9999;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;box-shadow:var(--shadow-md);padding:10px;display:flex;flex-direction:column;gap:4px;min-width:220px`;
-
-  const x = Math.min(event.clientX, window.innerWidth - 240);
-  const y = Math.min(event.clientY + 8, window.innerHeight - 160);
-  popup.style.left = x + 'px';
-  popup.style.top  = y + 'px';
-
-  const opcoes = [
-    { val: 'vivo',    label: '🎭 Ao vivo — intérprete presencial' },
-    { val: 'gravado', label: '🎬 Gravado — pós-produção' },
-    { val: 'ambos',   label: '🎭🎬 Ao vivo + Gravado' },
-    { val: '',        label: '❓ Indefinido' },
-  ];
-
-  const titulo = document.createElement('div');
-  titulo.style.cssText = 'font-family:var(--cond);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text4);padding:2px 4px 6px';
-  titulo.textContent = 'Tipo de serviço';
-  popup.appendChild(titulo);
-
-  opcoes.forEach(({ val, label }) => {
-    const btn = document.createElement('button');
-    btn.textContent = label;
-    btn.style.cssText = 'text-align:left;background:none;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;font-family:var(--sans);font-size:12px;color:var(--text2);width:100%';
-    btn.onmouseover = () => btn.style.background = 'var(--bg3)';
-    btn.onmouseout  = () => btn.style.background = 'none';
-    btn.onclick = () => {
-      salvarTipoServico(id, fonte, val);
-      popup.remove();
-    };
-    popup.appendChild(btn);
-  });
-
-  document.body.appendChild(popup);
-  setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 50);
-}
-
-async function salvarTipoServico(id, fonte, tipo) {
-  // Atualiza em memória e salva no Supabase correto
-  const tabelas = {
-    proac:   { obj: crmData,   table: 'proac_crm',     col: 'tipo_servico' },
-    salic:   { obj: salicCRM,  table: 'salic_leads',   col: 'tipo_servico' },
-    minc:    { obj: mincCRM,   table: 'minc_leads',    col: 'tipo_servico' },
-    federal: { obj: fedCRM,    table: 'federal_leads', col: 'tipo_servico' },
-    fsa:     { obj: fsaCRM,    table: 'fsa_leads',     col: 'tipo_servico' },
-  };
-  const cfg = tabelas[fonte];
-  if (!cfg) return;
-  if (!cfg.obj[id]) cfg.obj[id] = { status: 'nao', responsavel: '', tipoServico: '' };
-  cfg.obj[id].tipoServico = tipo;
-
-  try {
-    await supa.from(cfg.table).upsert(
-      { id, [cfg.col]: tipo, updated_at: new Date().toISOString() },
-      { onConflict: 'id' }
-    );
-  } catch(e) { console.warn('Tipo serviço save:', e.message); }
-
-  // Re-renderiza a aba ativa
-  if (fonte === 'proac')   renderTabela();
-  if (fonte === 'salic')   renderSalic();
-  if (fonte === 'minc')    renderMinc();
-  if (fonte === 'federal') renderFederal();
-  if (fonte === 'fsa')     renderFsa();
-}
 
 function log(msg,tipo='prog'){const el=document.getElementById('logLines'),w=document.getElementById('logWrap');w.classList.add('visible');const d=document.createElement('div');d.className='log-line '+tipo;d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
 function clearLog(){document.getElementById('logLines').innerHTML='';document.getElementById('logWrap').classList.remove('visible');}
@@ -1643,7 +1468,6 @@ function getFiltrados(){
   const ftipo=document.getElementById('filtTipo').value,fnovos=document.getElementById('filtNovos').value;
   const fano=document.getElementById('filtAno').value,fpessoa=document.getElementById('filtPessoa').value;
   const fcrm=document.getElementById('filtCRM').value;
-  const fresp=(document.getElementById('filtResp')?.value||'');
   let l=[...todosLeads];
   if(filtroProgAtivo)l=l.filter(x=>x.programa===filtroProgAtivo);
   if(busca)l=l.filter(x=>x.projeto.toLowerCase().includes(busca)||x.proponente.toLowerCase().includes(busca)||x.municipio.toLowerCase().includes(busca)||x.segmento.toLowerCase().includes(busca)||x.inscricao.toLowerCase().includes(busca));
@@ -1654,7 +1478,6 @@ function getFiltrados(){
   if(fano)l=l.filter(x=>x.anoEdital===fano);
   if(fpessoa)l=l.filter(x=>x.tipoPessoa===fpessoa);
   if(fcrm)l=l.filter(x=>(crmData[x.id]||{status:'nao'}).status===fcrm);
-  if(fresp)l=l.filter(x=>(crmData[x.id]||{}).responsavel===fresp);
   l.sort((a,b)=>{let va,vb;if(sortCol==='valor'){va=a.valor;vb=b.valor;}else if(sortCol==='projeto'){va=a.projeto;vb=b.projeto;}else if(sortCol==='municipio'){va=a.municipio;vb=b.municipio;}else if(sortCol==='programa'){va=a.programa;vb=b.programa;}else{va=a.aprovacao;vb=b.aprovacao;}if(va<vb)return sortAsc?-1:1;if(va>vb)return sortAsc?1:-1;return 0;});
   return l;
 }
@@ -1673,13 +1496,13 @@ function renderTabela(){
   const tbody=document.getElementById('tbodyLista');
   if(todosLeads.length===0){
     tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">ETC</div><p>Nenhum dado carregado ainda.<br>Clique em <strong>Atualizar dados</strong> para buscar os projetos da API.</p></div></td></tr>`;
-    document.getElementById('paginfoLabel').textContent='—';
+    ['paginfoLabel','tabelaInfo'].forEach(id=>document.getElementById(id).textContent='—');
     document.getElementById('btnPrev').disabled=document.getElementById('btnNext').disabled=true;
     return;
   }
   if(lista.length===0){
-    tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><p>Nenhum projeto com os filtros selecionados.</p></div></td></tr>`;
-    
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><p>Nenhum projeto com os filtros selecionados.</p></div></td></tr>`;
+    document.getElementById('tabelaInfo').innerHTML='<strong>0</strong> projetos';
     document.getElementById('paginfoLabel').textContent='0 projetos';
     document.getElementById('btnPrev').disabled=document.getElementById('btnNext').disabled=true;
     return;
@@ -1700,7 +1523,7 @@ function renderTabela(){
       <td><span class="prog-badge" style="background:${cor}18;color:${cor};border:1px solid ${cor}35">${label}</span></td>
       <td style="max-width:240px">
         ${novoTag}${festTag}${pnabTag}
-        <div class="proj-name" style="cursor:pointer;color:var(--blue)" onclick="abrirProjModal('${l.id}')">${renderTipoIconClicavel(l.id,[l.segmento,l.programa,l.projeto],crm.tipoServico,'proac')}${l.projeto}</div>
+        <div class="proj-name" style="cursor:pointer;color:var(--blue)" onclick="abrirProjModal('${l.id}')">${l.projeto}</div>
         <div class="proj-num">${l.inscricao}</div>
         <div class="prop-name" style="margin-top:3px">${l.proponente}</div>
         <div class="prop-tipo">${l.tipoPessoa} · ${l.municipio}</div>
@@ -1717,9 +1540,9 @@ function renderTabela(){
           <option value="fechado" ${crm.status==='fechado'?'selected':''}>Fechado ✓</option>
           <option value="descartado" ${crm.status==='descartado'?'selected':''}>Descartado</option>
         </select>
+        ${crm.responsavel?`<div style="font-size:10px;color:var(--text3);margin-top:3px">👤 ${crm.responsavel}</div>`:''}
         ${crm.dataContato?`<div style="font-size:10px;color:var(--text4);margin-top:1px">📅 ${crm.dataContato}</div>`:''}
       </td>
-      <td>${renderRespSelect(crm.responsavel, `atualizarRespProac('${l.id}',this.value)`)}</td>
       <td>
         <button class="btn-nota ${temNota?'tem-nota':''}" onclick="abrirModal('${l.id}')" title="${temNota?'Ver/editar notas':'Adicionar notas'}">
           ${temNota?'📝 Ver nota':'+ Nota'}
@@ -1730,7 +1553,7 @@ function renderTabela(){
   }).join('');
   const total=lista.length,fim=Math.min(inicio+POR_PAGINA,total);
   document.getElementById('paginfoLabel').textContent=`${inicio+1}–${fim} de ${total.toLocaleString('pt-BR')}`;
-  
+  document.getElementById('tabelaInfo').innerHTML=`<strong>${total.toLocaleString('pt-BR')}</strong> projetos`;
   document.getElementById('btnPrev').disabled=paginaAtual===0;
   document.getElementById('btnNext').disabled=fim>=total;
   document.querySelectorAll('thead th').forEach(th=>{th.classList.toggle('sorted',th.id.replace('th-','')===sortCol);});
@@ -1746,12 +1569,6 @@ function atualizarStatus(id,val,sel){
   tr.className='';
   const nc=getCRMRowClass(id);
   if(nc)tr.classList.add(nc);
-}
-
-function atualizarRespProac(id, resp) {
-  if(!crmData[id]) crmData[id] = {};
-  crmData[id].responsavel = resp;
-  saveCRM(id, crmData[id]);
 }
 
 function abrirModal(id){
@@ -1788,7 +1605,7 @@ function salvarCRM(){
   renderTabela();
 }
 
-function pagina(dir){paginaAtual+=dir;renderTabela();}
+function pagina(dir){paginaAtual+=dir;renderTabela();document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth',block:'start'});}
 function resetPagina(){paginaAtual=0;}
 function sortBy(col){sortCol===col?sortAsc=!sortAsc:(sortCol=col,sortAsc=false);resetPagina();renderTabela();}
 
@@ -2263,21 +2080,15 @@ let salicResultados = [];
 let salicCRM = {};
 let salicDebounceTimer = null;
 
-let salicCarregado = false;
-
 function inicializarSalic() {
   carregarSalicCRM();
-  if (!salicCarregado) {
-    salicCarregado = true;
-    salicBuscar();
-  }
 }
 
 async function carregarSalicCRM() {
   try {
-    const { data } = await supa.from('salic_leads').select('id,status_crm,responsavel,tipo_servico');
+    const { data } = await supa.from('salic_leads').select('id,status_crm,responsavel');
     salicCRM = {};
-    for (const r of (data || [])) salicCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', tipoServico: r.tipo_servico || '' };
+    for (const r of (data || [])) salicCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '' };
   } catch(e) { console.warn('SALIC CRM:', e.message); }
 }
 
@@ -2288,7 +2099,6 @@ async function atualizarSalicCRM(id, nome, proponente, valor, uf, segmento, camp
     await supa.from('salic_leads').upsert({
       id, nome, proponente, valor: valor||0, uf, segmento,
       status_crm: salicCRM[id].status, responsavel: salicCRM[id].responsavel || '',
-      tipo_servico: salicCRM[id].tipoServico || '',
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
   } catch(e) { console.warn('SALIC CRM save:', e.message); }
@@ -2339,14 +2149,6 @@ async function salicBuscar(resetOffset = true) {
     });
 
     salicResultados = projetos;
-
-    // Atualiza opções do filtro de segmento sem resetar seleção atual
-    const segSelect = document.getElementById('salicSegmento');
-    const segAtual  = segSelect.value;
-    const segmentos = [...new Set(projetos.map(p => p.segmento).filter(Boolean))].sort();
-    segSelect.innerHTML = '<option value="">Todos os segmentos</option>' +
-      segmentos.map(s => `<option value="${s}"${s===segAtual?' selected':''}>${s}</option>`).join('');
-
     renderSalic();
 
     const vt = projetos.reduce((s,p) => s+(p.valor_aprovado||0), 0);
@@ -2377,20 +2179,7 @@ function renderSalic() {
     tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto com acessibilidade nessa página — clique em "Próxima" para continuar.</td></tr>`;
     return;
   }
-  const segFiltro = document.getElementById('salicSegmento')?.value || '';
-  const resultadosFiltrados = segFiltro ? salicResultados.filter(p => p.segmento === segFiltro) : salicResultados;
-  if (!resultadosFiltrados.length) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto neste segmento nessa página. Tente outra página ou remova o filtro.</td></tr>`;
-    document.getElementById('salicPagInfo').textContent = `0 projetos (filtro: ${segFiltro}) · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`;
-    document.getElementById('salicValorTotal').textContent = '—';
-    return;
-  }
-  const vtFilt = resultadosFiltrados.reduce((s,p) => s+(p.valor_aprovado||0), 0);
-  document.getElementById('salicValorTotal').textContent = vtFilt > 0 ? 'R$ '+(vtFilt/1e6).toFixed(1)+'M' : '—';
-  document.getElementById('salicPagInfo').textContent = segFiltro
-    ? `${resultadosFiltrados.length} de ${salicResultados.length} projetos (filtro: ${segFiltro}) · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`
-    : `${salicResultados.length} projetos c/ acessibilidade nessa página · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`;
-  tbody.innerHTML = resultadosFiltrados.map((p, i) => {
+  tbody.innerHTML = salicResultados.map((p, i) => {
     const crm  = salicCRM[p.PRONAC] || { status: 'nao' };
     const a    = (p.acessibilidade||'').toLowerCase();
     const tags = [
@@ -2410,7 +2199,7 @@ function renderSalic() {
     return `<tr>
       <td style="color:var(--text4);font-family:var(--cond)">${salicOffset+i+1}</td>
       <td style="max-width:280px">
-        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchSalic('${p.PRONAC}')">${renderTipoIconClicavel(p.PRONAC,[p.segmento,p.tipologia,p.nome],crm.tipoServico,'salic')}${p.nome}</div>
+        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchSalic('${p.PRONAC}')">${p.nome}</div>
         <div class="minc-empresa">${p.proponente||''} · ${p.cgccpf||''}</div>
         <div style="font-size:10px;color:var(--text4)">${p.tipologia||''}</div>
       </td>
@@ -2427,7 +2216,6 @@ function renderSalic() {
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
       </td>
-      <td>${renderRespSelect(crm.responsavel, `atualizarSalicCRM('${p.PRONAC}','${nomeEsc.substring(0,50)}','${propEsc}',${p.valor_aprovado||0},'${p.UF||''}','${segEsc}','responsavel',this.value)`)}</td>
       <td><button onclick="abrirPitchSalic('${p.PRONAC}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer">✦</button></td>
     </tr>`;
   }).join('');
@@ -2579,11 +2367,11 @@ async function inicializarFederal() {
 
 async function carregarFederalCRM() {
   try {
-    const { data, error } = await supa.from('federal_leads').select('id,status_crm,responsavel,obs,tipo_servico');
+    const { data, error } = await supa.from('federal_leads').select('id,status_crm,responsavel,obs');
     if (error) throw error;
     fedCRM = {};
     for (const r of (data || [])) {
-      fedCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '', tipoServico: r.tipo_servico || '' };
+      fedCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '' };
     }
     if (!data || data.length === 0) await sincronizarFederalSupabase();
     renderFederal();
@@ -2668,11 +2456,11 @@ function renderFederal() {
     const priBadge = l.men ? '<span style="font-size:10px" title="Prioridade alta">⭐</span>' : '';
     const metaBadge = l.ma ? '<span style="font-size:10px" title="Meta acessibilidade">📋</span>' : '';
 
-    return `<tr>
+    return `<tr style="cursor:pointer" onclick="if(event.target.tagName!=='SELECT'&&event.target.tagName!=='BUTTON'&&event.target.tagName!=='A'&&event.target.tagName!=='OPTION')abrirPitchFederal('${l.id}')">
       <td style="color:var(--text4);font-family:var(--cond)">${fedPag*FED_POR_PAG+i+1}</td>
       <td style="max-width:320px">
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">${srcBadge}${priBadge}${metaBadge}</div>
-        <div class="minc-obra">${renderTipoIconClicavel(l.id,[l.obj,l.tip],crm.tipoServico,'federal')}${l.p}</div>
+        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchFederal('${l.id}')">${l.p}</div>
         <div class="minc-empresa" style="font-size:10px">${l.cnpj || ''} · ${l.tip || ''}</div>
         ${l.obj ? `<div style="font-size:11px;color:var(--text4);margin-top:3px;line-height:1.4;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.obj}</div>` : ''}
       </td>
@@ -2691,7 +2479,6 @@ function renderFederal() {
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
       </td>
-      <td>${renderRespSelect(crm.responsavel, `atualizarFedCRM('${l.id}','responsavel',this.value)`)}</td>
       <td>
         <button onclick="abrirPitchFederal('${l.id}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button>
       </td>
@@ -2782,21 +2569,18 @@ function trocarFonte(fonte) {
   const isFederal = fonte === 'federal';
   const isProac   = fonte === 'proac';
   const isSalic   = fonte === 'salic';
-  const isFsa     = fonte === 'fsa';
   document.getElementById('proacSection').style.display    = isProac   ? 'block' : 'none';
   document.getElementById('mincSection').style.display     = isMinc    ? 'block' : 'none';
   document.getElementById('federalSection').style.display  = isFederal ? 'block' : 'none';
   document.getElementById('salicSection').style.display    = isSalic   ? 'block' : 'none';
-  document.getElementById('fsaSection').style.display      = isFsa     ? 'block' : 'none';
   document.getElementById('tabProac').classList.toggle('active', isProac);
   document.getElementById('tabMinc').classList.toggle('active', isMinc);
   document.getElementById('tabFederal').classList.toggle('active', isFederal);
   document.getElementById('tabSalic').classList.toggle('active', isSalic);
-  document.getElementById('tabFsa').classList.toggle('active', isFsa);
+  document.getElementById('sidebar').style.display = isProac ? '' : 'none';
   if (isMinc)    inicializarMinc();
   if (isFederal) inicializarFederal();
   if (isSalic)   inicializarSalic();
-  if (isFsa)     inicializarFsa();
 }
 
 function inicializarMinc() {
@@ -2817,11 +2601,11 @@ function inicializarMinc() {
 
 async function carregarMincCRM() {
   try {
-    const { data, error } = await supa.from('minc_leads').select('id,status_crm,responsavel,obs,tipo_servico');
+    const { data, error } = await supa.from('minc_leads').select('id,status_crm,responsavel,obs');
     if (error) throw error;
     mincCRM = {};
     for (const r of (data || [])) {
-      mincCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '', tipoServico: r.tipo_servico || '' };
+      mincCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '' };
     }
     // Se não tem registros no banco, faz upsert inicial
     if (!data || data.length === 0) {
@@ -2898,7 +2682,7 @@ function renderMinc() {
     return `<tr>
       <td style="color:var(--text4);font-family:var(--cond)">${mincPag*MINC_POR_PAG+i+1}</td>
       <td>
-        <div class="minc-obra">${renderTipoIconClicavel(l.id,[l.modulo,'cinema','audiovisual'],mincCRM[l.id]?.tipoServico||'gravado','minc')}${l.obra}</div>
+        <div class="minc-obra">${l.obra}</div>
         <div class="minc-empresa">${l.empresa}</div>
       </td>
       <td style="font-size:11px;color:var(--text3)">${l.municipio}</td>
@@ -2911,7 +2695,6 @@ function renderMinc() {
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
       </td>
-      <td>${renderRespSelect(crm.responsavel, `atualizarMincCRM('${l.id}','responsavel',this.value)`)}</td>
       <td>
         <button onclick="abrirProjModalMinc('${l.id}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button>
       </td>
@@ -3016,229 +2799,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){fecharModalDireto()
   }
   setTimeout(clearLog, 3000);
 })();
-
-// ── FSA / ANCINE LOGIC ──
-const FSA_PROXY = 'https://etc-filmes-proxy.vercel.app/api/fsa';
-const FSA_POR_PAG = 25;
-let fsaLeads = [];
-let fsaCRM = {};
-let fsaPag = 0;
-let fsaCarregado = false;
-let fsaDebounceTimer = null;
-
-function inicializarFsa() {
-  carregarFsaCRM();
-  // Só carrega os dados automaticamente na primeira vez
-  if (!fsaCarregado) fsaCarregar();
-}
-
-async function carregarFsaCRM() {
-  try {
-    const { data } = await supa.from('fsa_leads').select('id,status_crm,responsavel,tipo_servico');
-    fsaCRM = {};
-    for (const r of (data || [])) fsaCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', tipoServico: r.tipo_servico || '' };
-  } catch(e) { console.warn('FSA CRM load:', e.message); }
-}
-
-async function atualizarFsaCRM(id, titulo, produtora, valor, chamada, campo, valor2) {
-  if (!fsaCRM[id]) fsaCRM[id] = { status: 'nao', responsavel: '' };
-  fsaCRM[id][campo] = valor2;
-  try {
-    await supa.from('fsa_leads').upsert({
-      id, titulo, produtora, valor: valor || 0, chamada,
-      status_crm: fsaCRM[id].status,
-      responsavel: fsaCRM[id].responsavel || '',
-      tipo_servico: fsaCRM[id].tipoServico || '',
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
-  } catch(e) { console.warn('FSA CRM save:', e.message); }
-}
-
-async function fsaCarregar() {
-  const btn = document.getElementById('fsaBtnCarregar');
-  btn.disabled = true;
-  btn.textContent = '⟳ Carregando...';
-  document.getElementById('fsaLoading').style.display = 'block';
-  document.getElementById('fsaTableWrap').style.opacity = '0.4';
-
-  try {
-    const resp = await fetch(`${FSA_PROXY}`);
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error);
-
-    fsaLeads = data.projetos || [];
-    fsaCarregado = true;
-
-    // Popular filtro de chamadas
-    const chamadas = [...new Set(fsaLeads.map(p => p.chamada).filter(Boolean))].sort();
-    const sel = document.getElementById('fsaChamada');
-    const atual = sel.value;
-    sel.innerHTML = '<option value="">Todas as chamadas</option>' +
-      chamadas.map(c => `<option value="${c}"${c===atual?' selected':''}>${c}</option>`).join('');
-
-    fsaPag = 0;
-    renderFsa();
-
-  } catch(e) {
-    document.getElementById('fsaTbody').innerHTML =
-      `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--red)">Erro: ${e.message}</td></tr>`;
-  } finally {
-    document.getElementById('fsaLoading').style.display = 'none';
-    document.getElementById('fsaTableWrap').style.opacity = '1';
-    btn.disabled = false;
-    btn.textContent = '⟳ Atualizar';
-  }
-}
-
-function fsaBuscarDebounce() {
-  clearTimeout(fsaDebounceTimer);
-  fsaDebounceTimer = setTimeout(() => { fsaPag = 0; renderFsa(); }, 400);
-}
-
-function getFsaFiltrados() {
-  const busca   = (document.getElementById('fsaBusca')?.value || '').toLowerCase();
-  const anoMin  = parseInt(document.getElementById('fsaAnoMin')?.value || '0') || 0;
-  const chamada = document.getElementById('fsaChamada')?.value || '';
-  const crm     = document.getElementById('fsaFiltroCRM')?.value || '';
-
-  return fsaLeads.filter(p => {
-    if (anoMin  && parseInt(p.ano_edital || '0') < anoMin) return false;
-    if (chamada && p.chamada !== chamada) return false;
-    if (crm     && (fsaCRM[p.cnpj_produtora]?.status || 'nao') !== crm) return false;
-    if (busca   && !p.titulo.toLowerCase().includes(busca) && !p.produtora.toLowerCase().includes(busca) && !p.proponente.toLowerCase().includes(busca)) return false;
-    return true;
-  });
-}
-
-function renderFsa() {
-  if (!fsaCarregado) return;
-  const filtrados  = getFsaFiltrados();
-
-  // Ordena por data_contrato decrescente (mais recentes primeiro)
-  filtrados.sort((a, b) => {
-    const toDate = s => {
-      if (!s) return 0;
-      const [d, m, y] = s.split('/');
-      return new Date(`${y}-${m}-${d}`).getTime() || 0;
-    };
-    return toDate(b.data_contrato) - toDate(a.data_contrato);
-  });
-
-  const total      = filtrados.length;
-  const totalPags  = Math.ceil(total / FSA_POR_PAG);
-  if (fsaPag >= totalPags) fsaPag = Math.max(0, totalPags - 1);
-  const pagina     = filtrados.slice(fsaPag * FSA_POR_PAG, (fsaPag + 1) * FSA_POR_PAG);
-  const valorTotal = filtrados.reduce((s, p) => s + (p.valor_contrato || 0), 0);
-  const chamadas   = new Set(filtrados.map(p => p.chamada).filter(Boolean)).size;
-
-  document.getElementById('fsaTotal').textContent      = total.toLocaleString('pt-BR');
-  document.getElementById('fsaValorTotal').textContent = valorTotal > 0 ? 'R$ ' + (valorTotal/1e6).toFixed(1) + 'M' : '—';
-  document.getElementById('fsaChamadas').textContent   = chamadas;
-  document.getElementById('fsaPagInfo').textContent    = total
-    ? `${fsaPag*FSA_POR_PAG+1}–${Math.min((fsaPag+1)*FSA_POR_PAG,total)} de ${total} projetos`
-    : '0 projetos';
-  document.getElementById('fsaBtnPrev').disabled = fsaPag === 0;
-  document.getElementById('fsaBtnNext').disabled = fsaPag >= totalPags - 1;
-
-  const tbody = document.getElementById('fsaTbody');
-  if (!pagina.length) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto encontrado com os filtros aplicados.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = pagina.map((p, i) => {
-    const crmId  = p.cnpj_produtora || p.cnpj_proponente || p.titulo;
-    const crm    = fsaCRM[crmId] || { status: 'nao' };
-    const idEsc  = crmId.replace(/'/g, "\\'");
-    const titEsc = p.titulo.replace(/'/g, "\\'").substring(0, 60);
-    const proEsc = p.produtora.replace(/'/g, "\\'").substring(0, 50);
-    const chaEsc = p.chamada.replace(/'/g, "\\'").substring(0, 40);
-
-    const anoNum = parseInt(p.ano_edital || '0');
-    const anoBadgeColor = anoNum >= 2023 ? 'var(--green)' : anoNum >= 2020 ? 'var(--orange)' : 'var(--text4)';
-
-    return `<tr>
-      <td style="color:var(--text4);font-family:var(--cond)">${fsaPag*FSA_POR_PAG+i+1}</td>
-      <td style="max-width:260px">
-        <div class="minc-obra" style="cursor:pointer;color:var(--blue)" onclick="abrirPitchFsa('${idEsc}')">${renderTipoIconClicavel(idEsc,[p.chamada,'audiovisual','gravado'],fsaCRM[idEsc]?.tipoServico||'gravado','fsa')}${p.titulo||'—'}</div>
-        <div class="minc-empresa">${p.data_contrato||''}</div>
-      </td>
-      <td style="max-width:200px">
-        <div style="font-size:12px;font-weight:600;color:var(--text)">${p.produtora||'—'}</div>
-        <div style="font-size:10px;color:var(--text4)">${p.cnpj_produtora||''}</div>
-      </td>
-      <td style="font-size:11px;color:var(--text3);max-width:160px">${p.proponente||'—'}</td>
-      <td><span class="minc-modulo-badge" style="background:rgba(6,182,212,0.1);color:#0891b2;border-color:rgba(6,182,212,0.25)">${p.chamada||'—'}</span></td>
-      <td style="font-family:var(--cond);font-size:12px;font-weight:700;color:${anoBadgeColor}">${p.ano_edital||'—'}</td>
-      <td style="font-family:var(--cond);font-size:12px;font-weight:700;white-space:nowrap;color:var(--text2)">${p.valor_contrato ? formatValor(p.valor_contrato) : '—'}</td>
-      <td style="font-family:var(--cond);font-size:12px;font-weight:700;white-space:nowrap;color:${p.valor_liberado > 0 ? 'var(--green)' : 'var(--text4)'}">${p.valor_liberado > 0 ? formatValor(p.valor_liberado) : 'R$ 0'}</td>
-      <td>
-        <select class="crm-select s-${crm.status}" onchange="atualizarFsaCRM('${idEsc}','${titEsc}','${proEsc}',${p.valor_contrato||0},'${chaEsc}','status',this.value);this.className='crm-select s-'+this.value" style="font-size:11px;padding:3px 6px">
-          ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
-        </select>
-      </td>
-      <td>${renderRespSelect(crm.responsavel, `atualizarFsaCRM('${idEsc}','${titEsc}','${proEsc}',${p.valor_contrato||0},'${chaEsc}','responsavel',this.value)`)}</td>
-      <td><button onclick="abrirPitchFsa('${idEsc}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button></td>
-    </tr>`;
-  }).join('');
-}
-
-function fsaPaginar(dir) {
-  const total = getFsaFiltrados().length;
-  const totalPags = Math.ceil(total / FSA_POR_PAG);
-  fsaPag = Math.max(0, Math.min(fsaPag + dir, totalPags - 1));
-  renderFsa();
-}
-
-function abrirPitchFsa(id) {
-  const p = fsaLeads.find(x => (x.cnpj_produtora || x.cnpj_proponente || x.titulo) === id);
-  if (!p) return;
-
-  projAtual = {
-    id: id, projeto: p.titulo, proponente: p.produtora || p.proponente,
-    municipio: '—', tipoPessoa: 'PJ', segmento: p.chamada || 'FSA',
-    valor: p.valor_contrato || 0, anoEdital: p.ano_edital || '',
-    programa: 'FSA — ' + (p.chamada || 'ANCINE'), status: 'CONTRATADO',
-    inscricao: p.cnpj_produtora || p.cnpj_proponente, aprovacao: p.data_contrato || '',
-    acessInfo: '',
-    _detalhes: {
-      resumo: '',
-      descricao: `Chamada Pública: ${p.chamada||'—'}\nAno: ${p.ano_edital||'—'}\nProdutora: ${p.produtora||'—'} (${p.cnpj_produtora||'—'})\nProponente: ${p.proponente||'—'}\nProgramadora: ${p.programadora||'—'}\nValor contrato: ${p.valor_contrato ? formatValor(p.valor_contrato) : '—'}\nValor liberado: ${p.valor_liberado > 0 ? formatValor(p.valor_liberado) : 'R$ 0'}`,
-      objetivos: '', locaisTexto: '—', dtInicio: p.data_contrato, dtFim: ''
-    }
-  };
-
-  document.getElementById('pmBadgeProg').textContent = 'FSA / ANCINE';
-  document.getElementById('pmBadgeProg').style.cssText = 'background:#ecfeff;color:#0891b2;border:1px solid rgba(8,145,178,0.25)';
-  document.getElementById('pmBadgeTipo').textContent = '🎬 ' + (p.chamada || 'Fundo Setorial');
-  document.getElementById('pmBadgeTipo').style.display = '';
-  document.getElementById('pmBadgeStatus').textContent = 'Contratado';
-  document.getElementById('pmBadgeStatus').style.cssText = 'background:#ecfdf5;color:#059669;border:1px solid rgba(5,150,105,0.2)';
-  document.getElementById('pmTitulo').textContent = p.titulo || '—';
-  document.getElementById('pmProponente').textContent = '🎬 ' + (p.produtora || p.proponente || '—');
-  document.getElementById('pmMunicipio').textContent = '📋 ' + (p.chamada || '—');
-  document.getElementById('pmInscricao').textContent = '🏢 ' + (p.cnpj_produtora || p.cnpj_proponente || '—');
-  document.getElementById('pmValor').textContent = p.valor_contrato ? formatValor(p.valor_contrato) : '—';
-  document.getElementById('pmData').textContent = p.data_contrato || '—';
-  const anoCard = document.getElementById('pmAno');
-  anoCard.closest('.proj-info-card').querySelector('.label').textContent = 'Ano edital';
-  anoCard.textContent = p.ano_edital || '—';
-  document.getElementById('pmTipoPessoa').textContent = 'Pessoa Jurídica';
-  document.getElementById('pmSegmento').textContent = p.chamada || '—';
-  document.getElementById('pmStatusApi').textContent = p.valor_liberado > 0 ? 'Desembolso iniciado' : 'Contratado';
-  document.getElementById('pmAcessBloco').style.display = 'none';
-  document.getElementById('pmDescBloco').style.display = '';
-  document.getElementById('pmDesc').innerHTML = `
-    <div class="proj-section-title">Dados do contrato FSA</div>
-    <div class="proj-desc-box"><pre style="font-family:var(--sans);white-space:pre-wrap;font-size:12px">${projAtual._detalhes.descricao}</pre></div>`;
-  document.getElementById('pitchContent').innerHTML = '<span class="pitch-empty">Clique em "Gerar pitch" para criar uma abordagem comercial personalizada.</span>';
-  document.getElementById('btnCopyPitch').disabled = true;
-  document.getElementById('btnGerarPitch').disabled = false;
-  document.getElementById('btnGerarPitch').textContent = '✦ Gerar pitch';
-  document.getElementById('moskitSyncResult').textContent = '';
-  document.getElementById('btnEnviarMoskit').disabled = !localStorage.getItem('etc_moskit_key');
-  document.getElementById('projOverlay').classList.add('open');
-}
 </script>
 </div><!-- fim #appScreen -->
 
