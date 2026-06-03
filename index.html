@@ -2476,11 +2476,18 @@ async function inicializarFederal() {
 
 async function carregarFederalCRM() {
   try {
-    const { data, error } = await supa.from('federal_leads').select('id,status_crm,responsavel,obs');
+    const { data, error } = await supa.from('federal_leads').select('id,status_crm,responsavel,obs,objeto');
     if (error) throw error;
     fedCRM = {};
     for (const r of (data || [])) {
       fedCRM[r.id] = { status: r.status_crm || 'nao', responsavel: r.responsavel || '', obs: r.obs || '' };
+      // Hidrata o obj completo do Supabase se for maior
+      if (r.objeto && r.objeto.length > 0) {
+        const lead = FEDERAL_LEADS.find(x => x.id === r.id);
+        if (lead && r.objeto.length > (lead.obj||'').length) {
+          lead.obj = r.objeto;
+        }
+      }
     }
     if (!data || data.length === 0) await sincronizarFederalSupabase();
     renderFederal();
@@ -2656,7 +2663,8 @@ Serviços necessários: ${(l.srv||[]).join(', ')}`,
     <div class="proj-section-title">Serviços de acessibilidade identificados</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${(l.srv||[]).map(s => `<span style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-bdr);padding:4px 12px;border-radius:4px;font-size:12px;font-family:var(--cond);font-weight:700">${s}</span>`).join('')}</div>
     <div class="proj-section-title">Objeto do projeto</div>
-    <div class="proj-desc-box">${l.obj || '—'}</div>`;
+    <div class="proj-section-title">Objeto do projeto</div>
+    <div class="proj-desc-box" style="max-height:none;white-space:pre-wrap;line-height:1.5">${l.obj || '—'}</div>`;
 
   document.getElementById('pitchContent').innerHTML = '<span class="pitch-empty">Clique em "Gerar pitch" para criar uma abordagem comercial personalizada.</span>';
   document.getElementById('btnCopyPitch').disabled = true;
