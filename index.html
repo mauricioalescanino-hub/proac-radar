@@ -1284,7 +1284,14 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
         </div>
         <div class="form-group">
           <label>Responsável comercial</label>
-          <input type="text" id="mCrmResponsavel" placeholder="Nome do responsável">
+          <select id="mCrmResponsavel">
+            <option value="">— Responsável —</option>
+            <option value="Mauricio">Mauricio</option>
+            <option value="Fabriccio">Fabriccio</option>
+            <option value="Daniela">Daniela</option>
+            <option value="Hunter">Hunter</option>
+            <option value="Marketing">Marketing</option>
+          </select>
         </div>
       </div>
       <div class="form-row">
@@ -1333,6 +1340,8 @@ const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const CRM_STATUS_LABELS={nao:'Não contatado',contato:'Em contato',proposta:'Proposta enviada',negociando:'Negociando',fechado:'Fechado ✓',descartado:'Descartado'};
 const CRM_STATUS_CORES={nao:'var(--text3)',contato:'var(--blue)',proposta:'var(--purple)',negociando:'var(--orange)',fechado:'var(--green)',descartado:'var(--text4)'};
+const RESPONSAVEIS=['','Mauricio','Fabriccio','Daniela','Hunter','Marketing'];
+function optsResp(atual){return RESPONSAVEIS.map(n=>`<option value="${n}"${(atual||'')===(n)?' selected':''}>${n||'— Responsável —'}</option>`).join('');}
 
 let todosLeads=[],idsVistos=new Set(JSON.parse(localStorage.getItem(IDS_KEY)||'[]'));
 let crmData={};
@@ -2332,7 +2341,7 @@ function renderSalic() {
         <select class="crm-select s-${crm.status}" onchange="atualizarSalicCRM('${p.PRONAC}','${nomeEsc.substring(0,50)}','${propEsc}',${p.valor_aprovado||0},'${p.UF||''}','${segEsc}','status',this.value);this.className='crm-select s-'+this.value" style="font-size:11px;padding:3px 6px;width:100%">
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
-        <input type="text" value="${(crm.responsavel||'').replace(/"/g,'&quot;')}" placeholder="👤 Responsável..." onclick="event.stopPropagation()" onblur="atualizarSalicCRM('${p.PRONAC}','${nomeEsc.substring(0,50)}','${propEsc}',${p.valor_aprovado||0},'${p.UF||''}','${segEsc}','responsavel',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}" style="font-size:10px;padding:2px 5px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:3px;background:var(--bg2);color:var(--text2);box-sizing:border-box">
+        <select onclick="event.stopPropagation()" onchange="atualizarSalicCRM('${p.PRONAC}','${nomeEsc.substring(0,50)}','${propEsc}',${p.valor_aprovado||0},'${p.UF||''}','${segEsc}','responsavel',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:3px;background:var(--bg2);color:var(--text2)">${optsResp(crm.responsavel)}</select>
       </td>
       <td><button onclick="abrirPitchSalic('${p.PRONAC}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer">✦</button></td>
     </tr>`;
@@ -2603,7 +2612,7 @@ function renderFederal() {
         <select class="crm-select s-${crm.status}" onchange="atualizarFedCRM('${l.id}','status',this.value);this.className='crm-select s-'+this.value" style="font-size:11px;padding:3px 6px;width:100%">
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
-        <input type="text" value="${(crm.responsavel||'').replace(/"/g,'&quot;')}" placeholder="👤 Responsável..." onclick="event.stopPropagation()" onblur="atualizarFedCRM('${l.id}','responsavel',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}" style="font-size:10px;padding:2px 5px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:3px;background:var(--bg2);color:var(--text2);box-sizing:border-box">
+        <select onclick="event.stopPropagation()" onchange="atualizarFedCRM('${l.id}','responsavel',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:3px;background:var(--bg2);color:var(--text2)">${optsResp(crm.responsavel)}</select>
       </td>
       <td>
         <button onclick="abrirPitchFederal('${l.id}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button>
@@ -2825,7 +2834,7 @@ function renderMinc() {
         <select class="crm-select s-${crm.status}" onchange="atualizarMincCRM('${l.id}','status',this.value);this.className='crm-select s-'+this.value" style="font-size:11px;padding:3px 6px;width:100%">
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
-        <input type="text" value="${(crm.responsavel||'').replace(/"/g,'&quot;')}" placeholder="👤 Responsável..." onclick="event.stopPropagation()" onblur="atualizarMincCRM('${l.id}','responsavel',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}" style="font-size:10px;padding:2px 5px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:3px;background:var(--bg2);color:var(--text2);box-sizing:border-box">
+        <select onclick="event.stopPropagation()" onchange="atualizarMincCRM('${l.id}','responsavel',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:3px;background:var(--bg2);color:var(--text2)">${optsResp(crm.responsavel)}</select>
       </td>
       <td>
         <button onclick="abrirProjModalMinc('${l.id}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button>
@@ -3078,7 +3087,7 @@ function renderFsa() {
         <select class="crm-select s-${crm.status}" onchange="atualizarFsaCRM('${idEsc}','${titEsc}','${proEsc}',${p.valor_contrato||0},'${chaEsc}','status',this.value);this.className='crm-select s-'+this.value" style="font-size:11px;padding:3px 6px;width:100%">
           ${Object.entries(CRM_STATUS_LABELS).map(([k,v])=>`<option value="${k}"${crm.status===k?' selected':''}>${v}</option>`).join('')}
         </select>
-        <input type="text" value="${(crm.responsavel||'').replace(/"/g,'&quot;')}" placeholder="👤 Responsável..." onclick="event.stopPropagation()" onblur="atualizarFsaCRM('${idEsc}','${titEsc}','${proEsc}',${p.valor_contrato||0},'${chaEsc}','responsavel',this.value)" onkeydown="if(event.key==='Enter'){this.blur()}" style="font-size:10px;padding:2px 5px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:3px;background:var(--bg2);color:var(--text2);box-sizing:border-box">
+        <select onclick="event.stopPropagation()" onchange="atualizarFsaCRM('${idEsc}','${titEsc}','${proEsc}',${p.valor_contrato||0},'${chaEsc}','responsavel',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--border);border-radius:3px;width:100%;margin-top:3px;background:var(--bg2);color:var(--text2)">${optsResp(crm.responsavel)}</select>
       </td>
       <td><button onclick="abrirPitchFsa('${idEsc}')" style="background:var(--blue-dim);border:1px solid var(--blue-bdr);color:var(--blue);font-family:var(--cond);font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer" title="Gerar pitch">✦</button></td>
     </tr>`;
