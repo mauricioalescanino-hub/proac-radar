@@ -998,6 +998,12 @@ tbody td { padding: 9px 12px; vertical-align: middle; }
       <select class="minc-filter-select" id="salicSegmento" onchange="renderSalic()" style="max-width:220px">
         <option value="">Todos os segmentos</option>
       </select>
+      <select class="minc-filter-select" id="salicVigencia" onchange="renderSalic()">
+        <option value="">Todas as vigências</option>
+        <option value="vigente">Em vigência</option>
+        <option value="expirando">Expirando (180 dias)</option>
+        <option value="vencido">Vencido</option>
+      </select>
       <input class="minc-filter-input" id="salicBusca" placeholder="🔍  Buscar nome ou proponente..." style="flex:1;min-width:180px" oninput="salicBuscarDebounce()">
       <button class="btn-sm primary" onclick="salicBuscar()" id="salicBtnBuscar">🔍 Buscar</button>
     </div>
@@ -2293,10 +2299,22 @@ function renderSalic() {
     return;
   }
   const segFiltro = document.getElementById('salicSegmento')?.value || '';
-  const resultadosFiltrados = segFiltro ? salicResultados.filter(p => p.segmento === segFiltro) : salicResultados;
+  const vigFiltro = document.getElementById('salicVigencia')?.value || '';
+  let resultadosFiltrados = segFiltro ? salicResultados.filter(p => p.segmento === segFiltro) : salicResultados;
+  if (vigFiltro) {
+    const hoje = new Date();
+    resultadosFiltrados = resultadosFiltrados.filter(p => {
+      if (!p.data_termino) return vigFiltro === 'vencido';
+      const diff = Math.round((new Date(p.data_termino) - hoje) / 86400000);
+      if (vigFiltro === 'vencido')    return diff < 0;
+      if (vigFiltro === 'expirando')  return diff >= 0 && diff < 180;
+      if (vigFiltro === 'vigente')    return diff >= 0;
+      return true;
+    });
+  }
   if (!resultadosFiltrados.length) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto neste segmento nessa página. Tente outra página ou remova o filtro.</td></tr>`;
-    document.getElementById('salicPagInfo').textContent = `0 projetos (filtro: ${segFiltro}) · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text4);font-style:italic">Nenhum projeto neste filtro nessa página. Tente outra página ou remova o filtro.</td></tr>`;
+    document.getElementById('salicPagInfo').textContent = `0 projetos · total API: ${salicTotalAPI.toLocaleString('pt-BR')}`;
     document.getElementById('salicValorTotal').textContent = '—';
     return;
   }
